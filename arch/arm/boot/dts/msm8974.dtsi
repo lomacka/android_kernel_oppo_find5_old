@@ -77,7 +77,9 @@
 		cell-index = <1>;
 		compatible = "qcom,msm-sdcc";
 		reg = <0xf9824000 0x1000>;
+		reg-names = "core_mem";
 		interrupts = <0 123 0>;
+		interrupt-names = "core_irq";
 		vdd-supply = <&pm8941_l20>;
 		vdd-io-supply = <&pm8941_s3>;
 
@@ -99,7 +101,9 @@
 		cell-index = <2>;
 		compatible = "qcom,msm-sdcc";
 		reg = <0xf98a4000 0x1000>;
+		reg-names = "core_mem";
 		interrupts = <0 125 0>;
+		interrupt-names = "core_irq";
 		vdd-supply = <&pm8941_l21>;
 		vdd-io-supply = <&pm8941_l13>;
 
@@ -123,7 +127,9 @@
 		cell-index = <3>;
 		compatible = "qcom,msm-sdcc";
 		reg = <0xf9864000 0x1000>;
+		reg-names = "core_mem";
 		interrupts = <0 127 0>;
+		interrupt-names = "core_irq";
 
 		qcom,sdcc-clk-rates = <400000 25000000 50000000 100000000>;
 		qcom,sdcc-sup-voltages = <1800 1800>;
@@ -136,7 +142,9 @@
 		cell-index = <4>;
 		compatible = "qcom,msm-sdcc";
 		reg = <0xf98e4000 0x1000>;
+		reg-names = "core_mem";
 		interrupts = <0 129 0>;
+		interrupt-names = "core_irq";
 
 		qcom,sdcc-clk-rates = <400000 25000000 50000000 100000000>;
 		qcom,sdcc-sup-voltages = <1800 1800>;
