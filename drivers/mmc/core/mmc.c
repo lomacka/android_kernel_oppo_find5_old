@@ -1478,31 +1478,6 @@ static void mmc_detect(struct mmc_host *host)
 }
 
 /*
- * Save ios settings
- */
-static void mmc_save_ios(struct mmc_host *host)
-{
-	BUG_ON(!host);
-
-	mmc_host_clk_hold(host);
-
-	memcpy(&host->saved_ios, &host->ios, sizeof(struct mmc_ios));
-
-	mmc_host_clk_release(host);
-}
-
-/*
- * Restore ios setting
- */
-static void mmc_restore_ios(struct mmc_host *host)
-{
-	BUG_ON(!host);
-
-	memcpy(&host->ios, &host->saved_ios, sizeof(struct mmc_ios));
-	mmc_set_ios(host);
-}
-
-/*
  * Suspend callback from host.
  */
 static int mmc_suspend(struct mmc_host *host)
@@ -1519,7 +1494,6 @@ static int mmc_suspend(struct mmc_host *host)
 	mmc_disable_clk_scaling(host);
 
 	mmc_claim_host(host);
-	mmc_save_ios(host);
 	if (mmc_can_poweroff_notify(host->card) &&
 		(host->caps2 & MMC_CAP2_POWER_OFF_VCCQ_DURING_SUSPEND)) {
 		err = mmc_poweroff_notify(host, MMC_PW_OFF_NOTIFY_SHORT);
@@ -1559,11 +1533,7 @@ static int mmc_resume(struct mmc_host *host)
 	BUG_ON(!host->card);
 
 	mmc_claim_host(host);
-	if (mmc_card_is_sleep(host->card)) {
-		mmc_restore_ios(host);
-		err = mmc_card_awake(host);
-	} else
-		err = mmc_init_card(host, host->ocr, host->card);
+	err = mmc_init_card(host, host->ocr, host->card);
 	mmc_release_host(host);
 
 	/*
