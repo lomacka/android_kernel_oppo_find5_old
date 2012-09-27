@@ -35,10 +35,10 @@
 #include <linux/usb/msm_hsusb.h>
 #include <linux/gpio.h>
 #include <linux/spinlock.h>
-#include <linux/irq.h>
 #include <linux/kthread.h>
 #include <linux/wait.h>
 #include <linux/pm_qos.h>
+#include <linux/irq.h>
 
 #include <mach/msm_bus.h>
 #include <mach/clk.h>
@@ -712,7 +712,7 @@ static int msm_hsic_suspend(struct msm_hsic_hcd *mehci)
 
 	wake_unlock(&mehci->wlock);
 
-//	dev_info(mehci->dev, "HSIC-USB in low power mode\n");
+	dev_dbg(mehci->dev, "HSIC-USB in low power mode\n");
 
 	return 0;
 }
@@ -1392,6 +1392,7 @@ static irqreturn_t hsic_peripheral_status_change(int irq, void *dev_id)
 static irqreturn_t msm_hsic_wakeup_irq(int irq, void *data)
 {
 	struct msm_hsic_hcd *mehci = data;
+	int ret;
 
 	mehci->wakeup_int_cnt++;
 	dbg_log_event(NULL, "Remote Wakeup IRQ", mehci->wakeup_int_cnt);
@@ -1409,8 +1410,17 @@ static irqreturn_t msm_hsic_wakeup_irq(int irq, void *data)
 	spin_unlock(&mehci->wakeup_lock);
 
 	if (!atomic_read(&mehci->pm_usage_cnt)) {
-		atomic_set(&mehci->pm_usage_cnt, 1);
-		pm_runtime_get(mehci->dev);
+		ret = pm_runtime_get(mehci->dev);
+		/*
+		 * HSIC runtime resume can race with us.
+		 * if we are active (ret == 1) or resuming
+		 * (ret == -EINPROGRESS), decrement the
+		 * PM usage counter before returning.
+		 */
+		if ((ret == 1) || (ret == -EINPROGRESS))
+			pm_runtime_put_noidle(mehci->dev);
+		else
+			atomic_set(&mehci->pm_usage_cnt, 1);
 	}
 
 	return IRQ_HANDLED;
