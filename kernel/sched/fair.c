@@ -3781,6 +3781,8 @@ struct lb_env {
 	unsigned int		loop;
 	unsigned int		loop_break;
 	unsigned int		loop_max;
+	int			power_lb;  /* if power balance needed */
+	int			perf_lb;   /* if performance balance needed */
 };
 
 /*
@@ -5080,6 +5082,8 @@ static int load_balance(int this_cpu, struct rq *this_rq,
 		.dst_rq		= this_rq,
 		.idle		= idle,
 		.loop_break	= sched_nr_migrate_break,
+		.power_lb	= 0,
+		.perf_lb	= 1,
 	};
 
 	cpumask_copy(cpus, cpu_active_mask);
