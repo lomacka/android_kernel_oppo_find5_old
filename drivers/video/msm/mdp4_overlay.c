@@ -3563,11 +3563,11 @@ int mdp4_overlay_play(struct fb_info *info, struct msmfb_overlay_data *req)
 		}
 	}
 
-	mdp4_overlay_mdp_perf_req(mfd, ctrl->plist);
-
 	if (pipe->mixer_num == MDP4_MIXER2 ||
 				ctrl->panel_mode & MDP4_PANEL_MDDI)
 		goto mddi;
+
+	mdp4_overlay_mdp_perf_req(mfd, ctrl->plist);
 
 	if (pipe->mixer_num == MDP4_MIXER0) {
 		if (ctrl->panel_mode & MDP4_PANEL_DSI_CMD) {
