@@ -174,10 +174,7 @@ static ssize_t msm_pm_mode_attr_store(struct kobject *kobj,
 {
 	int ret = -EINVAL;
 	int i;
-/* OPPO 2013-01-17 zhenwx Modify begin for  fore the idle_enabled to 0 */
-	char *buf_tmp;
-	char temp = 0;
-/* OPPO 2013-01-17 zhenwx Modify end */	
+
 	for (i = 0; i < MSM_PM_SLEEP_MODE_NR; i++) {
 		struct kernel_param kp;
 		unsigned int cpu;
@@ -198,17 +195,8 @@ static ssize_t msm_pm_mode_attr_store(struct kobject *kobj,
 			ret = param_set_byte(buf, &kp);
 		} else if (!strcmp(attr->attr.name,
 			msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_IDLE])) {
-/* OPPO 2013-01-17 zhenwx Modify begin for fore the idle_enabled to 0 */
-#if 0
 			kp.arg = &mode->idle_enabled;
 			ret = param_set_byte(buf, &kp);			
-#else
-			buf_tmp = &temp;			
-			kp.arg = &mode->idle_enabled;
-			ret = param_set_byte(buf_tmp, &kp);
-#endif
-/* OPPO 2013-01-17 zhenwx Modify end */
-
 		}
 
 		break;
