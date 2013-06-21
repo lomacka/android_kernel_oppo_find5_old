@@ -67,6 +67,8 @@ static struct drv_data {
 	struct device *dev;
 } drv;
 
+static char *pvs_names[] = { "Slow", "Nominal", "Fast", "Faster", "Unknown" };
+	
 /* OPPO 2012-12-30 zhenwx Add begin for show cpu serial number */
 static	u32 serial_number1 = 0;
 static	u32 serial_number2 = 0;
@@ -1001,7 +1003,6 @@ static int __init select_freq_plan(u32 qfprom_phys)
 {
 	void __iomem *qfprom_base;
 	u32 pte_efuse, pvs, tbl_idx;
-	char *pvs_names[] = { "Slow", "Nominal", "Fast", "Faster", "Unknown" };
 
 	qfprom_base = ioremap(qfprom_phys, SZ_256);
 	/* Select frequency tables. */
@@ -1056,7 +1057,7 @@ static int g_tbl_idx = PVS_UNKNOWN;
 
 static int pvs_proc_show(struct seq_file *m, void *v)
 {
-	seq_printf(m, "%d\n", g_tbl_idx);
+	seq_printf(m, "%d - %s\n", g_tbl_idx, pvs_names[g_tbl_idx]);
 	return 0;
 }
 
