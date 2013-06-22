@@ -53,7 +53,7 @@ struct synaptics_i2c_rmi_platform_data {
 };
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S2W
-extern void s2w_setdev(struct input_dev * input_device);
+extern void synaptics_s2w_setdev(struct input_dev * input_device);
 #endif
 
 

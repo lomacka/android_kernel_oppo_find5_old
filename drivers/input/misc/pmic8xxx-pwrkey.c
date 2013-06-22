@@ -164,7 +164,7 @@ static int __devinit pmic8xxx_pwrkey_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, pwrkey);
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S2W
-	s2w_setdev(pwr);
+	synaptics_s2w_setdev(pwr);
 #endif
 	
 	err = request_any_context_irq(key_press_irq, pwrkey_press_irq,
