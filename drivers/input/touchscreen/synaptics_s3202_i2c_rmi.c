@@ -229,16 +229,18 @@ static int synaptics_set_report_mode(struct synaptics_ts_data *ts, uint8_t set_m
 static bool s2w_barrier_reached = false;
 static bool s2w_exec_power_press = true;
 // -1 = not touched; -2 = touched on screen; >=0 = touched on button panel
-static int s2w_downx = -1;
-	
+static unsigned int s2w_down_x = -1;
+// absolute y position of the buttons - will be based on max_y in probe
+static unsigned int s2w_buttons_x = 3700;
+
 static struct input_dev * s2w_pwrdev = NULL;
 static DEFINE_MUTEX(pwrkeyworklock);
 
 static struct kobject *android_touch_kobj;
 
-void s2w_setdev(struct input_dev * input_device) 
+void synaptics_s2w_setdev(struct input_dev * input_device) 
 {
-	print_ts(TS_DEBUG, KERN_INFO "set s2w power dev %s\n", input_device->name);
+	print_ts(TS_INFO, KERN_INFO "set s2w_pwrdev=%s\n", input_device->name);
 	s2w_pwrdev = input_device;
 }
 
@@ -253,7 +255,7 @@ static void s2w_presspwr(struct work_struct * s2w_presspwr_work)
         return;
     }
 	
-	print_ts(TS_DEBUG, KERN_INFO "simulate power key pressed\n");
+	print_ts(TS_INFO, KERN_INFO "simulate power key pressed\n");
 
 	input_event(s2w_pwrdev, EV_KEY, KEY_POWER, 1);
 	input_event(s2w_pwrdev, EV_SYN, 0, 0);
@@ -274,11 +276,11 @@ static void simulate_power_press(void)
 static bool synaptics_s2w_handle_move(struct synaptics_ts_data* ts, int finger_data_x)
 {
 	// lock panel to s2w after this distance
-	if(abs(s2w_downx - finger_data_x) > ts->s2w_register_threshold)
+	if(abs(s2w_down_x - finger_data_x) > ts->s2w_register_threshold)
     	s2w_barrier_reached = true;
                       
 	// handle after distance travelled
-	if(abs(s2w_downx - finger_data_x) > ts->s2w_min_distance)
+	if(abs(s2w_down_x - finger_data_x) > ts->s2w_min_distance)
 		return true;
 
 	return false;
@@ -1354,6 +1356,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 	if (ts->is_tp_suspended)
 	{
 		if (input_wakeup_active(ts))
+			// maxwen: TODO is this needed???
 			mdelay(50);
 		else
 			goto work_func_end;
@@ -1436,17 +1439,17 @@ static void synaptics_ts_work_func(struct work_struct *work)
 						if (input_wakeup_active(ts))
 						{
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S2W
-							if (i == 0 && s2w_downx != -2)
+							if (i == 0 && s2w_down_x != -2)
 							{
 								int finger_y = f0_y;
 								int finger_x = f0_x;
 
-								if (finger_y > 3700)
+								if (finger_y > s2w_buttons_x)
 								{
-									if(s2w_downx == -1)
+									if(s2w_down_x == -1)
 									{
-										print_ts(TS_INFO, KERN_ERR "down at %d\n", finger_x);
-										s2w_downx = finger_x;
+										print_ts(TS_TRACE, KERN_ERR "down at %d\n", finger_x);
+										s2w_down_x = finger_x;
 									} 
 									else 
 									{
@@ -1468,7 +1471,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 											//left->right	
 											if (ts->is_tp_suspended)
 											{
-												if(finger_x > s2w_downx)
+												if(finger_x > s2w_down_x)
 												{
 													if (synaptics_s2w_handle_move(ts, finger_x))
 													{
@@ -1483,7 +1486,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 											} 
 											else 
 											{
-												if(finger_x < s2w_downx)
+												if(finger_x < s2w_down_x)
 												{
 													if (synaptics_s2w_handle_move(ts, finger_x))
 													{
@@ -1497,18 +1500,21 @@ static void synaptics_ts_work_func(struct work_struct *work)
 										}
 									}
 								} else {
-									print_ts(TS_INFO, KERN_ERR "left buttons at %d\n", finger_y);
+									print_ts(TS_TRACE, KERN_ERR "left buttons at %d\n", finger_y);
 									// this prevents swipes originating on screen and then
 									// entering button panel to affect s2w (gaming etc.)
-									s2w_downx = -2; 
+									s2w_down_x = -2; 
 								}
 							}
 							// we are in a swipe - dont report anything
-							if (s2w_barrier_reached){
+							if (s2w_barrier_reached)
 								goto work_func_end;
-							}
 #endif
 						}
+
+						// never report anything upstream if we are suspended
+						if (ts->is_tp_suspended)
+							goto work_func_end;
 						
 						input_report_abs(ts->input_dev, ABS_MT_POSITION_X, f0_x);
 						input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, f0_y);
@@ -1531,11 +1537,11 @@ static void synaptics_ts_work_func(struct work_struct *work)
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S2W
 					s2w_exec_power_press = true;
 					s2w_barrier_reached = false;
-					s2w_downx = -1;
+					s2w_down_x = -1;
 #endif
 				}
 				
-				print_ts(TS_INFO, KERN_ERR"[%s]: all finger up\n", __func__);
+				print_ts(TS_TRACE, KERN_ERR"[%s]: all finger up\n", __func__);
 			}
 
 			input_sync(ts->input_dev);
@@ -1982,6 +1988,10 @@ firmware_update:
 	ts->s2w_register_threshold = 9;
 	ts->s2w_min_distance = 325;
 	ts->s2w_allow_stroke = true;
+	
+	// button area begins at this y position
+	s2w_buttons_x = max_y - 150;
+	print_ts(TS_INFO, KERN_INFO "%s: s2w_enabled=%d  s2w_register_threshold=%d ts->s2w_min_distance=%d s2w_allow_stroke=%d s2w_buttons_x=%d\n", __func__, ts->s2w_enabled, ts->s2w_register_threshold, ts->s2w_min_distance, ts->s2w_allow_stroke, s2w_buttons_x);	
 #endif
 
 	// set device type as touchscreen
@@ -2072,8 +2082,6 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
 	down(&synaptics_sem);
 	ts->is_tp_suspended = 1;
-
-	print_ts(TS_INFO, KERN_INFO "%s\n", __func__);
 	
 	if (input_wakeup_active(ts))
 	{
@@ -2117,8 +2125,6 @@ static int synaptics_ts_resume(struct i2c_client *client)
 	int ret;
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
 	down(&synaptics_sem);
-
-	print_ts(TS_INFO, KERN_INFO "%s\n", __func__);
 
 	if (input_wakeup_active(ts))
 	{
