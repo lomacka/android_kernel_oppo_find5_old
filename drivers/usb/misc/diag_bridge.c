@@ -20,7 +20,6 @@
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/kref.h>
-#include <linux/mutex.h>
 #include <linux/platform_device.h>
 #include <linux/ratelimit.h>
 #include <linux/uaccess.h>
@@ -39,7 +38,6 @@ struct diag_bridge {
 	__u8			out_epAddr;
 	int			err;
 	struct kref		kref;
-	struct mutex		ifc_mutex;
 	struct diag_bridge_ops	*ops;
 	struct platform_device	*pdev;
 
@@ -126,34 +124,24 @@ int diag_bridge_read(char *data, int size)
 
 	pr_debug("reading %d bytes", size);
 
-	if (!dev) {
+	if (!dev || !dev->ifc) {
 		pr_err("device is disconnected");
 		return -ENODEV;
 	}
 
-	mutex_lock(&dev->ifc_mutex);
-	if (!dev->ifc) {
-		ret = -ENODEV;
-		goto error;
-	}
-
 	if (!dev->ops) {
 		pr_err("bridge is not open");
-		ret = -ENODEV;
-		goto error;
+		return -ENODEV;
 	}
 
 	if (!size) {
 		dev_err(&dev->ifc->dev, "invalid size:%d\n", size);
-		ret = -EINVAL;
-		goto error;
+		return -EINVAL;
 	}
 
 	/* if there was a previous unrecoverable error, just quit */
-	if (dev->err) {
-		ret = -ENODEV;
-		goto error;
-	}
+	if (dev->err)
+		return -ENODEV;
 
 	kref_get(&dev->kref);
 
@@ -161,7 +149,7 @@ int diag_bridge_read(char *data, int size)
 	if (!urb) {
 		dev_err(&dev->ifc->dev, "unable to allocate urb\n");
 		ret = -ENOMEM;
-		goto put_error;
+		goto error;
 	}
 
 	ret = usb_autopm_get_interface(dev->ifc);
@@ -186,11 +174,9 @@ int diag_bridge_read(char *data, int size)
 
 free_error:
 	usb_free_urb(urb);
-put_error:
+error:
 	if (ret) /* otherwise this is done in the completion handler */
 		kref_put(&dev->kref, diag_bridge_delete);
-error:
-	mutex_unlock(&dev->ifc_mutex);
 	return ret;
 }
 EXPORT_SYMBOL(diag_bridge_read);
@@ -232,34 +218,24 @@ int diag_bridge_write(char *data, int size)
 
 	pr_debug("writing %d bytes", size);
 
-	if (!dev) {
+	if (!dev || !dev->ifc) {
 		pr_err("device is disconnected");
 		return -ENODEV;
 	}
 
-	mutex_lock(&dev->ifc_mutex);
-	if (!dev->ifc) {
-		ret = -ENODEV;
-		goto error;
-	}
-
 	if (!dev->ops) {
 		pr_err("bridge is not open");
-		ret = -ENODEV;
-		goto error;
+		return -ENODEV;
 	}
 
 	if (!size) {
 		dev_err(&dev->ifc->dev, "invalid size:%d\n", size);
-		ret = -EINVAL;
-		goto error;
+		return -EINVAL;
 	}
 
 	/* if there was a previous unrecoverable error, just quit */
-	if (dev->err) {
-		ret = -ENODEV;
-		goto error;
-	}
+	if (dev->err)
+		return -ENODEV;
 
 	kref_get(&dev->kref);
 
@@ -267,7 +243,7 @@ int diag_bridge_write(char *data, int size)
 	if (!urb) {
 		dev_err(&dev->ifc->dev, "unable to allocate urb\n");
 		ret = -ENOMEM;
-		goto put_error;
+		goto error;
 	}
 
 	ret = usb_autopm_get_interface(dev->ifc);
@@ -294,11 +270,9 @@ int diag_bridge_write(char *data, int size)
 
 free_error:
 	usb_free_urb(urb);
-put_error:
+error:
 	if (ret) /* otherwise this is done in the completion handler */
 		kref_put(&dev->kref, diag_bridge_delete);
-error:
-	mutex_unlock(&dev->ifc_mutex);
 	return ret;
 }
 EXPORT_SYMBOL(diag_bridge_write);
@@ -415,7 +389,6 @@ diag_bridge_probe(struct usb_interface *ifc, const struct usb_device_id *id)
 	dev->udev = usb_get_dev(interface_to_usbdev(ifc));
 	dev->ifc = ifc;
 	kref_init(&dev->kref);
-	mutex_init(&dev->ifc_mutex);
 	init_usb_anchor(&dev->submitted);
 
 	ifc_desc = ifc->cur_altsetting;
@@ -457,9 +430,7 @@ static void diag_bridge_disconnect(struct usb_interface *ifc)
 	dev_dbg(&dev->ifc->dev, "%s:\n", __func__);
 
 	platform_device_unregister(dev->pdev);
-	mutex_lock(&dev->ifc_mutex);
 	dev->ifc = NULL;
-	mutex_unlock(&dev->ifc_mutex);
 	diag_bridge_debugfs_cleanup();
 	kref_put(&dev->kref, diag_bridge_delete);
 	usb_set_intfdata(ifc, NULL);
