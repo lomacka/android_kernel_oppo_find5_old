@@ -101,8 +101,8 @@ struct ks_bridge {
 };
 struct ks_bridge *__ksb[NO_BRIDGE_INSTANCES];
 
-/* by default debugging is enabled */
-static unsigned int enable_dbg = 1;
+/* by default debugging is disabled */
+static unsigned int enable_dbg = 0;
 module_param(enable_dbg, uint, S_IRUGO | S_IWUSR);
 
 static void
@@ -365,7 +365,7 @@ static int ksb_fs_open(struct inode *ip, struct file *fp)
 		return -ENODEV;
 	}
 
-	dev_dbg(ksb->fs_dev.this_device, ":%s", ksb->fs_dev.name);
+	pr_info("%s: %s\n", __func__, ksb->fs_dev.name);
 	dbg_log_event(ksb, "FS-OPEN", 0, 0);
 
 	fp->private_data = ksb;
@@ -381,7 +381,7 @@ static int ksb_fs_release(struct inode *ip, struct file *fp)
 {
 	struct ks_bridge	*ksb = fp->private_data;
 
-	dev_dbg(ksb->fs_dev.this_device, ":%s", ksb->fs_dev.name);
+	pr_info("%s: %s\n", __func__, ksb->fs_dev.name);
 	dbg_log_event(ksb, "FS-RELEASE", 0, 0);
 
 	clear_bit(FILE_OPENED, &ksb->flags);
@@ -401,6 +401,12 @@ static const struct file_operations ksb_fops = {
 static struct miscdevice ksb_fboot_dev[] = {
 	{
 		.minor = MISC_DYNAMIC_MINOR,
+		.name = "ks_bridge",
+		.fops = &ksb_fops,
+	},
+#if 0
+	{
+		.minor = MISC_DYNAMIC_MINOR,
 		.name = "ks_hsic_bridge",
 		.fops = &ksb_fops,
 	},
@@ -409,6 +415,7 @@ static struct miscdevice ksb_fboot_dev[] = {
 		.name = "ks_usb_bridge",
 		.fops = &ksb_fops,
 	},
+#endif
 };
 
 static const struct file_operations efs_fops = {
@@ -756,6 +763,7 @@ static void ksb_usb_disconnect(struct usb_interface *ifc)
 	struct data_pkt *pkt;
 
 	dbg_log_event(ksb, "PID-DETACH", 0, 0);
+	pr_info("%s: %s\n", __func__, ksb->fs_dev.name);
 
 	clear_bit(USB_DEV_CONNECTED, &ksb->flags);
 	wake_up(&ksb->ks_wait_q);
