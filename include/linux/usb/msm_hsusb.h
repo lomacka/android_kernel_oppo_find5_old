@@ -202,9 +202,6 @@ enum usb_vdd_value {
  * @mhl_enable: indicates MHL connector or not.
  * @disable_reset_on_disconnect: perform USB PHY and LINK reset
  *              on USB cable disconnection.
- * @enable_dcd: Enable Data Contact Detection circuit. if not set
- *              wait for 600msec before proceeding to primary
- *              detection.
  * @enable_lpm_on_suspend: Enable the USB core to go into Low
  *              Power Mode, when USB bus is suspended but cable
  *              is connected.
@@ -225,7 +222,6 @@ struct msm_otg_platform_data {
 	unsigned int mpm_otgsessvld_int;
 	bool mhl_enable;
 	bool disable_reset_on_disconnect;
-	bool enable_dcd;
 	bool enable_lpm_on_dev_suspend;
 	bool core_clk_always_on_workaround;
 	struct msm_bus_scale_pdata *bus_scale_table;
@@ -276,6 +272,7 @@ struct msm_otg_platform_data {
  * @otg: USB OTG Transceiver structure.
  * @pdata: otg device platform data.
  * @irq: IRQ number assigned for HSUSB controller.
+ * @async_irq: IRQ number used by some controllers during low power state
  * @clk: clock struct of alt_core_clk.
  * @pclk: clock struct of iface_clk.
  * @phy_reset_clk: clock struct of phy_clk.
@@ -284,7 +281,7 @@ struct msm_otg_platform_data {
  * @inputs: OTG state machine inputs(Id, SessValid etc).
  * @sm_work: OTG state machine work.
  * @in_lpm: indicates low power mode (LPM) state.
- * @async_int: Async interrupt arrived.
+ * @async_int: IRQ line on which ASYNC interrupt arrived in LPM.
  * @cur_power: The amount of mA available from downstream port.
  * @chg_work: Charger detection work.
  * @chg_state: The state of charger detection process.
@@ -305,6 +302,7 @@ struct msm_otg {
 	struct usb_phy phy;
 	struct msm_otg_platform_data *pdata;
 	int irq;
+	int async_irq;
 	struct clk *clk;
 	struct clk *pclk;
 	struct clk *phy_reset_clk;
@@ -336,12 +334,13 @@ struct msm_otg {
 	unsigned cur_power;
 	struct delayed_work chg_work;
 	struct delayed_work pmic_id_status_work;
+	struct delayed_work check_ta_work;
 /* OPPO 2012-08-09 chendx Add begin for nonstanard detect */
 	struct delayed_work nonstandard_detect_work;
 /* OPPO 2012-08-09 chendx Add end */
 	enum usb_chg_state chg_state;
 	enum usb_chg_type chg_type;
-	u8 dcd_retries;
+	unsigned dcd_time;
 	struct wake_lock wlock;
 	struct notifier_block usbdev_nb;
 	unsigned mA_port;
@@ -371,6 +370,7 @@ struct msm_otg {
 #define PHY_PWR_COLLAPSED		BIT(0)
 #define PHY_RETENTIONED			BIT(1)
 #define XO_SHUTDOWN			BIT(2)
+#define CLOCKS_DOWN			BIT(3)
 	int reset_counter;
 	unsigned long b_last_se0_sess;
 	unsigned long tmouts;
