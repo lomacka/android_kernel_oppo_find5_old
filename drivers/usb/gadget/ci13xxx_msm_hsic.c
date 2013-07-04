@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -407,7 +407,7 @@ static int msm_hsic_suspend(struct msm_hsic_per *mhsic)
 	enable_irq(mhsic->irq);
 	wake_unlock(&mhsic->wlock);
 
-//	dev_info(mhsic->dev, "HSIC-USB in low power mode\n");
+	dev_info(mhsic->dev, "HSIC-USB in low power mode\n");
 
 	return 0;
 }
@@ -482,7 +482,7 @@ skip_phy_resume:
 		enable_irq(mhsic->irq);
 	}
 
-//	dev_info(mhsic->dev, "HSIC-USB exited from low power mode\n");
+	dev_info(mhsic->dev, "HSIC-USB exited from low power mode\n");
 
 	return 0;
 }
