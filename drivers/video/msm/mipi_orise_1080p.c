@@ -15,7 +15,7 @@
 
 #include "msm_fb.h"
 #include "mipi_dsi.h"
-#include "mipi_orise.h"
+#include "mipi_orise_oppo.h"
 #include "mdp4.h"
 
 #include <mach/gpio.h>				//for 8064gpio

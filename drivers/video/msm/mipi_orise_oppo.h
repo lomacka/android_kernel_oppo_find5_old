@@ -12,10 +12,12 @@
  */
 
 
-#ifndef MIPI_ORISE_H
-#define MIPI_ORISE_H
-
-int mipi_orise_device_register(struct msm_panel_info *pinfo,
+#ifndef MIPI_ORISE_OPPO_H
+#define MIPI_ORISE_OPPO_H
+/* OPPO 2012-11-27 huyu Add for lcd restart */  
+int mipi_orise_device_register_1080p(struct msm_panel_info *pinfo,
 					u32 channel, u32 panel);
-
+int mipi_orise_device_register_720p(struct msm_panel_info *pinfo,
+					u32 channel, u32 panel);
+/* OPPO 2012-11-27 huyu Add for lcd restart */  
 #endif  /* MIPI_ORISE_H */
