@@ -251,7 +251,7 @@ static struct led_platform_data pm8921_led_core_pdata = {
 };
 
 /* OPPO 2012-11-15 wangjw Delete begin for button back light */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT	
 static int pm8921_led0_pwm_duty_pcts[56] = {
 	1, 4, 8, 12, 16, 20, 24, 28, 32, 36,
 	40, 44, 46, 52, 56, 60, 64, 68, 72, 76,
@@ -283,7 +283,7 @@ static struct pm8xxx_led_config pm8921_led_configs[] = {
 		.pwm_channel = 5,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 /* OPPO 2012-11-15 wangjw Delete begin for button back light */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT	
 		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
 #endif
 /* OPPO 2012-11-15 wangjw Delete end */
@@ -361,7 +361,7 @@ apq8064_pm8921_irq_pdata __devinitdata = {
 static struct pm8xxx_rtc_platform_data
 apq8064_pm8921_rtc_pdata = {
 /* OPPO 2012-09-19 liujun Modify begin for set rtc */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	.rtc_write_enable       = false,
 	.rtc_alarm_powerup      = false,
 #else
@@ -379,11 +379,13 @@ static int apq8064_pm8921_therm_mitigation[] = {
 };
 
 /* OPPO 2012-08-06 chendx Add begin for rsense init,12025 r-sense is 20mohm,qualcom r-sense is 10mohm */
+#ifdef CONFIG_VENDOR_EDIT
 #define RSENSE_MOHM		20
+#endif
 /* OPPO 2012-08-06 chendx Add end */
 
 /* OPPO 2012-10-25 chendx Modify begin for MAX VDD */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 #define MAX_VOLTAGE_MV          4200
 #else
 #define MAX_VOLTAGE_MV          4350	
@@ -393,7 +395,7 @@ static int apq8064_pm8921_therm_mitigation[] = {
 static struct pm8921_charger_platform_data
 apq8064_pm8921_chg_pdata __devinitdata = {
 	/* OPPO 2012-08-07 chendx Modify begin for reason */
-	#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	.safety_time		= 180,
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
@@ -409,7 +411,7 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.warm_bat_chg_current	= 350,
 	.cool_bat_voltage	= 4100,
 	.warm_bat_voltage	= 4100,
-	#else
+#else
 	.safety_time		= 480,
 	.update_time		= 6000,
 	.max_voltage		= MAX_VOLTAGE_MV,
@@ -441,13 +443,13 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.vin_min  = 4500,
 	
 	.r_sense		= RSENSE_MOHM,
-	#endif
+#endif
 	/* OPPO 2012-08-06 chendx Add end */
 
 	.thermal_mitigation	= apq8064_pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(apq8064_pm8921_therm_mitigation),
 /* OPPO 2012-11-07 chendx Modify begin for improve bms	*/
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 			.rconn_mohm 		= 18,
 #else
 			.rconn_mohm 		= 28,
@@ -459,13 +461,13 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 static struct pm8xxx_ccadc_platform_data
 apq8064_pm8xxx_ccadc_pdata = {
 	/* OPPO 2012-08-06 chendx Modify begin for rsense init */
-	#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	.r_sense		= 10,
 	.calib_delay_ms		= 600000,
-	#else
+#else
 	.r_sense		= RSENSE_MOHM,
 	.calib_delay_ms		= 600000,
-	#endif
+#endif
 	/* OPPO 2012-08-06 chendx Modify end */
 };
 
@@ -473,12 +475,12 @@ static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
 	.battery_type			= BATT_UNKNOWN,
 	/* OPPO 2012-08-06 chendx Modify begin for 12025 charge feature */
-	#ifndef CONFIG_VENDOR_EDIT
+#ifndef CONFIG_VENDOR_EDIT
 	.r_sense		= 10,
 	.v_cutoff			= 3400,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm			= 18,
-	#else
+#else
 	.r_sense		= RSENSE_MOHM,
 	.v_cutoff			= 3600,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
@@ -487,7 +489,7 @@ apq8064_pm8921_bms_pdata __devinitdata = {
     /* add for voltage very low*/
     .normal_voltage_calc_ms         = 20000,
     .low_voltage_calc_ms            = 1000,
-	#endif /*CONFIG_VENDOR_EDIT*/
+#endif /*CONFIG_VENDOR_EDIT*/
 	/* OPPO 2012-08-06 chendx Modify end */
 	
 	.shutdown_soc_valid_limit	= 20,
@@ -496,12 +498,14 @@ apq8064_pm8921_bms_pdata __devinitdata = {
 };
 
 /* OPPO 2012-07-25 liujun Add begin for init vibrator platform data */
+#ifdef CONFIG_VENDOR_EDIT
 static struct pm8xxx_vibrator_platform_data
 apq8064_pm8921_vib_pdata = {
 	.initial_vibrate_ms  = 0,
 	.level_mV = 2700,
 	.max_timeout_ms = 15000,
 };
+#endif
 /* OPPO 2012-07-25 liujun Add end */
 
 static struct pm8921_platform_data
@@ -519,7 +523,9 @@ apq8064_pm8921_platform_data __devinitdata = {
 	.bms_pdata		= &apq8064_pm8921_bms_pdata,
 	.ccadc_pdata		= &apq8064_pm8xxx_ccadc_pdata,
 /* OPPO 2012-07-25 liujun Add begin for init vibrator platform data */
+#ifdef CONFIG_VENDOR_EDIT
 	.vibrator_pdata	= &apq8064_pm8921_vib_pdata,
+#endif
 /* OPPO 2012-07-25 liujun Add end */
 };
 

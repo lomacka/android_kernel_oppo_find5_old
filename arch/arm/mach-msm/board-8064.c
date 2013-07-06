@@ -74,16 +74,6 @@
 #include <mach/msm_pcie.h>
 #include <mach/restart.h>
 #include <mach/msm_iomap.h>
-#ifdef CONFIG_VENDOR_EDIT
-/* OPPO 2012-07-12 liuhd Add begin for reason */
-#include <linux/nfc/pn544.h>
-/* OPPO 2012-07-12 liuhd Add end */
-/* OPPO 2012-12-30 yuyi Add begin for PVDD>ENABLE */
-#include <linux/regulator/consumer.h>
-/* OPPO 2012-12-30 yuyi Add end */
-#endif
-#include <linux/persistent_ram.h>
-
 #include "msm_watchdog.h"
 #include "board-8064.h"
 #include "spm.h"
@@ -93,17 +83,19 @@
 #include "pm-boot.h"
 #include "devices-msm8x60.h"
 #include "smd_private.h"
-/* OPPO 2012-07-31 liujun Add begin for touchscreen */
-#ifdef CONFIG_TOUCHSCREEN_MELFAS
-#include <linux/melfas_ts.h>
-#endif
-#ifdef CONFIG_TOUCHSCREEN_ELAN_KTF2K
-#include <linux/i2c/ektf2k.h>
-#endif
+
+#ifdef CONFIG_VENDOR_EDIT
+/* touchscreen */
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
 #include <linux/synaptics_i2c_rmi.h>
 #endif
-/* OPPO 2012-07-31 liujun Add end */
+/* nfc */
+#include <linux/nfc/pn544.h>
+/* for PVDD>ENABLE */
+#include <linux/regulator/consumer.h>
+/* ram console */
+#include <linux/persistent_ram.h>
+#endif
 
 #define MSM_PMEM_ADSP_SIZE         0x7800000
 #define MSM_PMEM_AUDIO_SIZE        0x4CF000
@@ -152,10 +144,9 @@
 #define PCIE_PWR_EN_PMIC_GPIO 13
 #define PCIE_RST_N_PMIC_MPP 1
 
-//#ifdef VENDOR_EDIT
+#ifdef CONFIG_VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.7, Add for modem subsystem restart not need pin
 static struct kobject *modeminfo_kobj;
-//#endif /* VENDOR_EDIT */
 
 /* OPPO 2012-09-12 Van Modify begin for factory mode*/
 static struct kobject *systeminfo_kobj;
@@ -306,13 +297,10 @@ static struct attribute_group attr_group = {
 };
 /* OPPO 2013-01-04 Van Modify end for boot modes*/
 
-//#ifdef VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.7, Add for modem subsystem restart not need pin
 extern int get_modem_reset_num(void);
-//#ifdef VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.20, Add for modem subsystem restart when no service
 extern void oppo_restart_modem(void);
-//#endif /* VENDOR_EDIT */
 static char pin_info[64] = {0}; 
 static int modem_reset_count = 0;
 static int need_pin_process_flag = -1;
@@ -328,14 +316,12 @@ void set_need_pin_process_flag(int flag)
 	need_pin_process_flag = flag;
 }
 
-//#ifdef VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.20, Add for modem subsystem restart when no service
 static ssize_t oppo_restart_modem_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf){
     oppo_restart_modem();		
     return sprintf(buf, "%d\n", modem_reset_count);
 }
-//#endif /* VENDOR_EDIT */
 static ssize_t pininfo_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf){
     return snprintf(buf, 4096, "%s\n", pin_info);
@@ -397,13 +383,12 @@ static ssize_t sim_status_store(struct kobject *kobj, struct kobj_attribute *att
 	
 	return count;
 }
-//#ifdef VENDOR_EDIT
+
 //WuJinping@OnlineRD.AirService.Phone 2013.1.20, Add for modem subsystem restart when no service
 struct kobj_attribute oppo_restart_modem_attr = {
     .attr = {"restart_modem", 0777},	
     .show = &oppo_restart_modem_show,
 };
-//#endif /* VENDOR_EDIT */
 
 struct kobj_attribute pininfo_attr = {
     .attr = {"pin_info", 0777},
@@ -440,17 +425,15 @@ static struct attribute * modeminfo_attr[] = {
 	&need_pin_process_flag_attr.attr,
 	&modem_reset_count_attr.attr,
 	&pininfo_attr.attr,
-//#ifdef VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.20, Add for modem subsystem restart when no service	
 	&oppo_restart_modem_attr.attr,
-//#endif /* VENDOR_EDIT */	
 	NULL,
 };
 
 static struct attribute_group modeminfo_attr_group = {
 	.attrs = modeminfo_attr,
 };
-//#endif /* VENDOR_EDIT */
+#endif
 
 #ifdef CONFIG_KERNEL_MSM_CONTIG_MEM_REGION
 static unsigned msm_contig_mem_size = MSM_CONTIG_MEM_SIZE;
@@ -549,10 +532,19 @@ static struct memtype_reserve apq8064_reserve_table[] __initdata = {
 static void __init reserve_rtb_memory(void)
 {
 #if defined(CONFIG_MSM_RTB)
+#ifdef CONFIG_VENDOR_EDIT
 /* OPPO 2003-01-17 Van modified begin for FTM test no need rtb_memory */
-	if (!strstr(boot_command_line,"oppo_ftm_mode=factory2"))
+	if (!strstr(boot_command_line,"oppo_ftm_mode=factory2")){
 		apq8064_reserve_table[MEMTYPE_EBI1].size += apq8064_rtb_pdata.size;
+		pr_info("mem_map: rtb reserved with size 0x%x in pool\n",
+			apq8064_rtb_pdata.size);
+	}
 /* OPPO 2003-01-17 Van modified end for FTM test no need rtb_memory */
+#else
+	apq8064_reserve_table[MEMTYPE_EBI1].size += apq8064_rtb_pdata.size;
+	pr_info("mem_map: rtb reserved with size 0x%x in pool\n",
+			apq8064_rtb_pdata.size);
+#endif
 #endif
 }
 
@@ -740,6 +732,9 @@ static void __init apq8064_reserve_fixed_area(unsigned long fixed_area_size)
 
 	ret = memblock_remove(reserve_info->fixed_area_start,
 		reserve_info->fixed_area_size);
+	pr_info("mem_map: fixed_area reserved at 0x%lx with size 0x%lx\n",
+			reserve_info->fixed_area_start,
+			reserve_info->fixed_area_size);
 	BUG_ON(ret);
 #endif
 }
@@ -1334,27 +1329,27 @@ static struct wcd9xxx_pdata apq8064_tabla_platform_data = {
 	.micbias = {
 		.ldoh_v = TABLA_LDOH_2P85_V,
 		.cfilt1_mv = 1800,
-		/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
-		#ifndef CONFIG_VENDOR_EDIT	
+/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
+#ifndef CONFIG_VENDOR_EDIT	
 		.cfilt2_mv = 2700,
-		#else
+#else
 		.cfilt2_mv = 2000,
-		#endif
-		/*OPPO 2012-07-27 zhzhyon Modify end*/
+#endif
+/*OPPO 2012-07-27 zhzhyon Modify end*/
 		.cfilt3_mv = 1800,
-		/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
-		#ifndef CONFIG_VENDOR_EDIT
+/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
+#ifndef CONFIG_VENDOR_EDIT
 		.bias1_cfilt_sel = TABLA_CFILT1_SEL,
 		.bias2_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias3_cfilt_sel = TABLA_CFILT3_SEL,
 		.bias4_cfilt_sel = TABLA_CFILT3_SEL,
-		#else
+#else
 		.bias1_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias2_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias3_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias4_cfilt_sel = TABLA_CFILT2_SEL,
-		#endif
-		/*OPPO 2012-07-27 zhzhyon Modify end*/
+#endif
+/*OPPO 2012-07-27 zhzhyon Modify end*/
 	},
 	.regulator = {
 	{
@@ -1416,27 +1411,27 @@ static struct wcd9xxx_pdata apq8064_tabla20_platform_data = {
 	.micbias = {
 		.ldoh_v = TABLA_LDOH_2P85_V,
 		.cfilt1_mv = 1800,
-		/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
-		#ifndef CONFIG_VENDOR_EDIT
+/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
+#ifndef CONFIG_VENDOR_EDIT
 		.cfilt2_mv = 2700,
-		#else
+#else
 		.cfilt2_mv = 2000,
-		#endif
-		/*OPPO 2012-07-27 zhzhyon Modify end*/
+#endif
+/*OPPO 2012-07-27 zhzhyon Modify end*/
 		.cfilt3_mv = 1800,
-		/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
-		#ifndef CONFIG_VENDOR_EDIT
+/*OPPO 2012-07-27 zhzhyon Modify for micbias voltage*/
+#ifndef CONFIG_VENDOR_EDIT
 		.bias1_cfilt_sel = TABLA_CFILT1_SEL,
 		.bias2_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias3_cfilt_sel = TABLA_CFILT3_SEL,
 		.bias4_cfilt_sel = TABLA_CFILT3_SEL,
-		#else
+#else
 		.bias1_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias2_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias3_cfilt_sel = TABLA_CFILT2_SEL,
 		.bias4_cfilt_sel = TABLA_CFILT2_SEL,
-		#endif
-		/*OPPO 2012-07-27 zhzhyon Modify end*/
+#endif
+/*OPPO 2012-07-27 zhzhyon Modify end*/
 	},
 	.regulator = {
 	{
@@ -1615,7 +1610,7 @@ static struct i2c_board_info isa1200_board_info[] __initdata = {
 	},
 };
 /* OPPO 2012-09-08 liujun Delete begin for disable original touchscreen define */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 /* configuration data for mxt1386e using V2.1 firmware */
 static const u8 mxt1386e_config_data_v2_1[] = {
 	/* T6 Object */
@@ -1833,13 +1828,12 @@ static struct i2c_board_info cyttsp_info[] __initdata = {
 		.irq = MSM_GPIO_TO_INT(CYTTSP_TS_GPIO_IRQ),
 	},
 };
-#endif
+
 /* OPPO 2012-09-08 liujun Delete end */
-
+#else
 /* OPPO 2012-07-31 liujun Add begin for define touch screen data */
-#if 1
 
-#if defined(CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI)
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
 static struct regulator *vreg_tp_2P8V = NULL;
 static DEFINE_MUTEX(TP_POWER_LOCK);
 
@@ -1935,7 +1929,6 @@ oppo_tp_power_return:
 	mutex_unlock(&TP_POWER_LOCK);
 	return rc;
  }
-#endif
 
 #define GPIO_TOUCH_INT	6
 #define GPIO_TP_WAKEUP  (14)
@@ -1945,7 +1938,6 @@ static void touch_init_hw(void)
 {
 	gpio_request(GPIO_TOUCH_INT, "TOUCH_INT");
 	gpio_direction_input(GPIO_TOUCH_INT);
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
 	if (get_pcb_version() >= 20)
 	{
 		gpio_tlmm_config(GPIO_CFG(GPIO_TP_WAKEUP, 0, GPIO_CFG_INPUT,
@@ -1955,10 +1947,8 @@ static void touch_init_hw(void)
 
 		oppo_touchscreen_power(1);
 	}
-#endif
 }
 
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
 static struct synaptics_i2c_rmi_platform_data synap_s3202_touch_platform_data[] = {
 	{
 		.version = 0x0101,
@@ -1977,52 +1967,7 @@ static struct i2c_board_info synaptics_s3202_touch_info[] = {
 };
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_ELAN_KTF2K
-
-static struct elan_ktf2k_i2c_platform_data ektf_touch_platform_data = {
-	.intr_gpio = GPIO_TOUCH_INT,
-	//.power = oppo_touchscreen_power,
-};
-
-static struct i2c_board_info ektf_touch_info[] = {
-	{
-		I2C_BOARD_INFO(ELAN_KTF2K_NAME, 0x15),
-		.irq		= MSM_GPIO_TO_INT(GPIO_TOUCH_INT),
-		.platform_data = &ektf_touch_platform_data,
-	}
-};
-
 #endif
-
-
-
-
-
-
-#ifdef CONFIG_TOUCHSCREEN_MELFAS
-
-static struct melfas_tsi_platform_data melfas_touch_platform_data = {
-	.max_x = 720,
-	.max_y = 1280,
-	.max_pressure = 255,
-	.max_area = 255, // ice cream "max_area"
-	//.gpio_scl = GPIO_TSP_SCL,
-	//.gpio_sda = GPIO_TSP_SDA,
-	//.power_enable = melfas_touch_power_enable,
-};
-
-static struct i2c_board_info i2c_touch_info[] = {
-	{
-		I2C_BOARD_INFO("melfas-ts", 0x48),
-		.irq		= MSM_GPIO_TO_INT(GPIO_TOUCH_INT), // Need modify 'INT PIN Define'
-		.platform_data = &melfas_touch_platform_data,
-	},
-};
-
-#endif
-
-#endif
-/* OPPO 2012-07-31 liujun Add end */
 
 #define MSM_WCNSS_PHYS	0x03000000
 #define MSM_WCNSS_SIZE	0x280000
@@ -2274,10 +2219,10 @@ static struct mdm_platform_data mdm_platform_data = {
 	.ramdump_delay_ms = 2000,
 	.early_power_on = 1,
 	.sfr_query = 1,
-	#ifdef CONFIG_VENDOR_EDIT
-	/* DuYuanHua@OnLineRD.AirService.MDM, 2012/12/04, Add for CR401598 Communicate MDM A5 thru' SYSMON */
+#ifdef CONFIG_VENDOR_EDIT
+/* DuYuanHua@OnLineRD.AirService.MDM, 2012/12/04, Add for CR401598 Communicate MDM A5 thru' SYSMON */
 	.send_shdn = 1,
-	#endif
+#endif
 	.vddmin_resource = &mdm_vddmin_rscs,
 	.peripheral_platform_device = &apq8064_device_hsic_host,
 	.ramdump_timeout_ms = 120000,
@@ -2672,6 +2617,7 @@ static void __init mpq8064_pcie_init(void)
 	}
 }
 
+/* ram console */
 #ifdef CONFIG_VENDOR_EDIT
 static struct platform_device ram_console_device = {
 	.name = "ram_console",
@@ -2756,11 +2702,14 @@ static struct platform_device *common_not_mpq_devices[] __initdata = {
 	&apq8064_device_qup_i2c_gsbi4,
 };
 
+#ifdef CONFIG_VENDOR_EDIT
 /* OPPO 2012-12-13 yxq Add begin for reason */
 static struct platform_device *gsbi7_i2c_devices[] __initdata = {
 	&apq8064_device_qup_i2c_gsbi7,
 };
 /* OPPO 2012-12-13 yxq Add end */
+#endif
+
 static struct platform_device *common_devices[] __initdata = {
 #ifdef CONFIG_VENDOR_EDIT
 	&ram_console_device,
@@ -2768,7 +2717,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_device_acpuclk,
 	&apq8064_device_dmov,
 /* OPPO 2012-08-29 chenzj Delete begin for del unused code */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	&apq8064_device_qup_spi_gsbi5,
 #endif
 /* OPPO 2012-08-29 chenzj Delete end */
@@ -2872,7 +2821,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_msm_gov_device,
 	&apq8064_device_cache_erp,
 /* OPPO 2012-09-29 liuhd Delete begin for disable this feature */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	&msm8960_device_ebi1_ch0_erp,
 	&msm8960_device_ebi1_ch1_erp,
 #endif
@@ -2908,7 +2857,7 @@ static struct platform_device *rumi3_devices[] __initdata = {
 
 static struct platform_device *cdp_devices[] __initdata = {
 /* OPPO 2012-08-29 chenzj Modify begin for uart debug */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	&apq8064_device_uart_gsbi1,
 	&apq8064_device_uart_gsbi7,
 #else
@@ -3078,10 +3027,12 @@ static struct msm_i2c_platform_data mpq8064_i2c_qup_gsbi5_pdata = {
 };
 
 /* OPPO 2012-12-13 yxq Add begin for reason */
+#ifdef CONFIG_VENDOR_EDIT
 static struct msm_i2c_platform_data apq8064_i2c_qup_gsbi7_pdata = {
 	.clk_freq = 100000,
 	.src_clk_rate = 24000000,
 };
+#endif
 /* OPPO 2012-12-13 yxq Add end */
 
 #define GSBI_DUAL_MODE_CODE 0x60
@@ -3105,10 +3056,12 @@ static void __init apq8064_i2c_init(void)
 	apq8064_device_qup_i2c_gsbi4.dev.platform_data =
 					&apq8064_i2c_qup_gsbi4_pdata;
 /* OPPO 2012-12-13 yxq Add begin for s5k6a3yx's I2C */
+#ifdef CONFIG_VENDOR_EDIT
 	if (get_pcb_version() >= 30) {
     		apq8064_device_qup_i2c_gsbi7.dev.platform_data =
 					&apq8064_i2c_qup_gsbi7_pdata;
 	}
+#endif
 /* OPPO 2012-12-13 yxq Add end */
 	mpq8064_device_qup_i2c_gsbi5.dev.platform_data =
 					&mpq8064_i2c_qup_gsbi5_pdata;
@@ -3450,6 +3403,7 @@ struct i2c_registry {
 	struct i2c_board_info *info;
 	int                    len;
 };
+
 #ifdef CONFIG_VENDOR_EDIT
 /* OPPO 2012-07-11 liuhd Add begin for nfc */
 #define APQ_NFC_VEN_GPIO 53  //NFC_ENABLE
@@ -3532,7 +3486,7 @@ struct i2c_registry {
 	 regulator_disable(ldol23);
 /* OPPO 2012-12-30 yuyi Add end for PVDD>ENABLE */
  }
-#endif
+
 /* OPPO 2012-07-11 liuhd Add end */
 //OPPO 2012-10-23 huyu add for lcd compatible
 static struct i2c_board_info lcd_1080p_info[] = {
@@ -3552,9 +3506,6 @@ static struct i2c_registry lcd_1080p_i2c_devices[] __initdata = {
 };
 
 static void register_lcd_1080p_i2c_devices(void) {
-
- 
-
  printk("----%s: lcd is --\n", __func__);
  if(get_pcb_version() >= 20)
  {
@@ -3565,7 +3516,7 @@ static void register_lcd_1080p_i2c_devices(void) {
 }
 //OPPO 2012-10-23 huyu add for lcd compatible
 //yanghai add
-#ifdef CONFIG_VENDOR_EDIT
+
 #define APQ_SLED_SDB_GPIO 82  //NFC_UPDATE
  static struct i2c_board_info sled_board_info[] __initdata = {
 	 {
@@ -3574,7 +3525,6 @@ static void register_lcd_1080p_i2c_devices(void) {
 };
 
 #define SN3193_SDB	GPIO_CFG(APQ_SLED_SDB_GPIO, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
-
 
 static void SN3193_power_init(void)
 {
@@ -3591,6 +3541,7 @@ static void SN3193_power_init(void)
 }
 #endif
 //yanghai add end
+
 static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 	{
 		I2C_LIQUID,
@@ -3599,7 +3550,7 @@ static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 		ARRAY_SIZE(smb349_charger_i2c_info)
 	},
 /* OPPO 2012-09-08 liujun Delete begin for disable original touchscreen define */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{
 		I2C_SURF | I2C_LIQUID,
 		APQ_8064_GSBI3_QUP_I2C_BUS_ID,
@@ -3612,25 +3563,9 @@ static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 		cyttsp_info,
 		ARRAY_SIZE(cyttsp_info),
 	},
-#endif
+#else
 /* OPPO 2012-09-08 liujun Delete end */
 /* OPPO 2012-07-31 liujun Add begin for define touchscreen data */
-#ifdef CONFIG_TOUCHSCREEN_MELFAS
-	{
-		I2C_SURF | I2C_LIQUID | I2C_FFA |I2C_MPQ_CDP |I2C_RUMI |I2C_MPQ_HRD | I2C_MPQ_DTV,
-		APQ_8064_GSBI3_QUP_I2C_BUS_ID,
-		i2c_touch_info,
-		ARRAY_SIZE(i2c_touch_info),
-	},
-#endif
-#ifdef CONFIG_TOUCHSCREEN_ELAN_KTF2K
-	{
-		I2C_SURF | I2C_LIQUID | I2C_FFA |I2C_MPQ_CDP |I2C_RUMI |I2C_MPQ_HRD | I2C_MPQ_DTV,
-		APQ_8064_GSBI3_QUP_I2C_BUS_ID,
-		ektf_touch_info,
-		ARRAY_SIZE(ektf_touch_info),
-	},
-#endif
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
 	{
 		I2C_SURF | I2C_LIQUID | I2C_FFA,
@@ -3640,6 +3575,7 @@ static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 	},
 #endif
 /* OPPO 2012-07-31 liujun Add end */
+#endif
 	{
 		I2C_FFA | I2C_LIQUID,
 		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
@@ -3661,10 +3597,8 @@ static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 		ARRAY_SIZE(nfc_board_info),
 	},
 /* OPPO 2012-07-20 liuhd Add end */
-#endif
 
 /* OPPO 2012-07-20 yanghai Add begin for reason */
-#ifdef CONFIG_VENDOR_EDIT
 	{
 		I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
 		APQ_8064_GSBI1_QUP_I2C_BUS_ID,
@@ -3762,6 +3696,7 @@ static void __init register_i2c_devices(void)
 		apq8064_camera_board_info.num_i2c_board_info,
 	};
 /* OPPO 2012-12-22 yxq added begin for s5k6a3yx on GSBI7(DVT) */
+#ifdef CONFIG_VENDOR_EDIT
 	struct i2c_registry apq8064_subcamera_i2c_devices = {
 		I2C_SURF | I2C_FFA | I2C_LIQUID | I2C_RUMI,
 		APQ_8064_GSBI7_QUP_I2C_BUS_ID,
@@ -3777,6 +3712,7 @@ static void __init register_i2c_devices(void)
 		apq8064_subcamera_board_info.board_info,
 		apq8064_subcamera_board_info.num_i2c_board_info,
 	};
+#endif
 /* OPPO 2012-10-21 yxq added end */
 #endif
 	/* Build the matching 'supported_machs' bitmask */
@@ -3795,17 +3731,15 @@ static void __init register_i2c_devices(void)
 	else
 		pr_err("unmatched machine ID in register_i2c_devices\n");
 
-/* OPPO 2012-07-31 liujun Add begin for init tp hw */
-	touch_init_hw();
-/* OPPO 2012-07-31 liujun Add end */
 #ifdef CONFIG_VENDOR_EDIT
+/* OPPO 2012-07-31 liujun Add begin for init tp hw */
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S3202_I2C_RMI
+	touch_init_hw();
+#endif
+/* OPPO 2012-07-31 liujun Add end */
 /* OPPO 2012-08-13 liuhd Add begin for reason */
 	pn544_power_init();
 /* OPPO 2012-08-13 liuhd Add end */
-#endif
-
-//yanghai add 
-#ifdef CONFIG_VENDOR_EDIT
 	SN3193_power_init();
 #endif
 //yanghai add end
@@ -3822,6 +3756,7 @@ static void __init register_i2c_devices(void)
 			apq8064_camera_i2c_devices.info,
 			apq8064_camera_i2c_devices.len);
 /* OPPO 2012-10-27 yxq added begin for s5k6a3yx */
+#ifdef CONFIG_VENDOR_EDIT
     if (get_pcb_version() >= 30){ //DVT
     	if (apq8064_subcamera_i2c_devices.machs & mach_mask)
     		i2c_register_board_info(apq8064_subcamera_i2c_devices.bus,
@@ -3833,6 +3768,7 @@ static void __init register_i2c_devices(void)
     			apq8064_subcamera_evt_i2c_devices.info,
     			apq8064_subcamera_evt_i2c_devices.len);
     }
+#endif
 /* OPPO 2012-12-27 yxq added end */
 #endif
 
@@ -3875,7 +3811,9 @@ static void enable_avc_i2c_bus(void)
 static void __init apq8064_common_init(void)
 {
 /* OPPO 2012-08-01 zwx Add begin for FTM */
+#ifdef CONFIG_VENDOR_EDIT
 	int rc = 0;
+#endif
 /* OPPO 2012-08-01 zwx Add end */
 	msm_tsens_early_init(&apq_tsens_pdata);
 	msm_thermal_init(&msm_thermal_pdata);
@@ -3897,7 +3835,9 @@ static void __init apq8064_common_init(void)
 	register_i2c_devices();
 
 //OPPO 2012-10-23 huyu add for lcd compatible
+#ifdef CONFIG_VENDOR_EDIT
 	register_lcd_1080p_i2c_devices();			//added by huyu
+#endif
 //OPPO 2012-10-23 huyu add for lcd compatible
 
 
@@ -3915,7 +3855,7 @@ static void __init apq8064_common_init(void)
 	apq8064_init_buses();
 	platform_add_devices(common_devices, ARRAY_SIZE(common_devices));
 /* OPPO 2012-12-14 yxq modified begin for s5k6a3yx's I2c */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	if (!(machine_is_mpq8064_cdp() || machine_is_mpq8064_hrd() ||
 			machine_is_mpq8064_dtv()))
 		platform_add_devices(common_not_mpq_devices,
@@ -3957,19 +3897,19 @@ static void __init apq8064_common_init(void)
 	apq8064_epm_adc_init();
 
 	/* OPPO 2012-09-12 Van Modify begin for factory mode*/
+#ifdef CONFIG_VENDOR_EDIT
 	systeminfo_kobj = kobject_create_and_add("systeminfo", NULL);
 	printk("songxh create systeminto node!\n");
 	if (systeminfo_kobj)
 		rc = sysfs_create_group(systeminfo_kobj, &attr_group);
 	/* OPPO 2012-09-12 Van Modify end */
 
-//#ifdef VENDOR_EDIT
 //WuJinping@OnlineRD.AirService.Phone 2013.1.7, Add for modem subsystem restart not need pin
 	modeminfo_kobj = kobject_create_and_add("modeminfo", NULL);
 	printk("create modeminfo node by wjp!\n");
 	if (modeminfo_kobj)
 		rc = sysfs_create_group(modeminfo_kobj, &modeminfo_attr_group);
-//#endif /* VENDOR_EDIT */
+#endif /* VENDOR_EDIT */
 
 	msm_pm_set_tz_retention_flag(1);
 }

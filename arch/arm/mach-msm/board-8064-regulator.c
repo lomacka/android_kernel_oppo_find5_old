@@ -65,10 +65,11 @@ VREG_CONSUMERS(L8) = {
 	REGULATOR_SUPPLY("cam_vana",		"4-0034"),
 	REGULATOR_SUPPLY("cam_vana",		"4-0020"),
 /* OPPO 2012-07-27 yxq add begin for camera */
+#ifdef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vana",		"4-0010"),//imx091, imx135(10)
-	REGULATOR_SUPPLY("cam_vana",		"4-003c"),//s5k8aay
 	REGULATOR_SUPPLY("cam_vana",		"0-0010"),//s5k6a3yx
 	REGULATOR_SUPPLY("cam_vana",		"7-0010"),//s5k6a3yx
+#endif
 /* OPPO 2012-07-27 yxq add end */
 };
 VREG_CONSUMERS(L9) = {
@@ -85,7 +86,7 @@ VREG_CONSUMERS(L11) = {
 };
 VREG_CONSUMERS(L12) = {
 /* OPPO 2012-07-27 zwx Delete begin for camera */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
@@ -109,10 +110,11 @@ VREG_CONSUMERS(L16) = {
 	REGULATOR_SUPPLY("cam_vaf",		"4-0034"),
 	REGULATOR_SUPPLY("cam_vaf",		"4-0020"),
 /* OPPO 2012-07-27 yxq add begin for camera */
+#ifdef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vaf",		"4-0010"),
-	REGULATOR_SUPPLY("cam_vaf",		"4-003c"),
 	REGULATOR_SUPPLY("cam_vaf",		"0-0010"),
 	REGULATOR_SUPPLY("cam_vaf",		"7-0010"),
+#endif
 /* OPPO 2012-07-27 yxq add end */
 };
 VREG_CONSUMERS(L17) = {
@@ -157,8 +159,9 @@ VREG_CONSUMERS(L28) = {
 	REGULATOR_SUPPLY("8921_l28",		NULL),
 	REGULATOR_SUPPLY("core_vdd",		"pil_qdsp6v4.1"),
 /* OPPO 2012-09-11 yxq added begin for imx135 */
-	//REGULATOR_SUPPLY("cam_vdig",		"4-001a"),//imx135(1a)
+#ifdef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vdig",		"4-0010"),//imx135(10)
+#endif
 /* OPPO 2012-09-11 yxq added end */
 };
 VREG_CONSUMERS(L29) = {
@@ -220,13 +223,12 @@ VREG_CONSUMERS(LVS2) = {
 	REGULATOR_SUPPLY("8921_lvs2",		NULL),
 	REGULATOR_SUPPLY("iris_vdddig",		"wcnss_wlan.0"),
 /* OPPO 2012-07-27 yxq add begin for camera */
-	//REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
+#ifdef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0034"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0020"),
-	//REGULATOR_SUPPLY("cam_vdig",		"4-0010"),//imx091
-	REGULATOR_SUPPLY("cam_vdig",		"4-003c"),//s5k8aay	
+#endif
 /* OPPO 2012-07-27 yxq add end */
 };
 VREG_CONSUMERS(LVS3) = {
@@ -243,11 +245,12 @@ VREG_CONSUMERS(LVS5) = {
 	REGULATOR_SUPPLY("cam_vio",		"4-0034"),
 	REGULATOR_SUPPLY("cam_vio",		"4-0020"),
 /* OPPO 2012-07-27 yxq add begin for camera */
+#ifdef CONFIG_VENDOR_EDIT
 	REGULATOR_SUPPLY("cam_vio",		"4-0010"),//imx091, imx135(10)
-	REGULATOR_SUPPLY("cam_vio",		"4-003c"),//s5k8aay
 	REGULATOR_SUPPLY("cam_vio",		"4-0030"),
 	REGULATOR_SUPPLY("cam_vio",		"0-0010"),//s5k6a3yx
 	REGULATOR_SUPPLY("cam_vio",		"7-0010"),//s5k6a3yx
+#endif
 /* OPPO 2012-07-27 yxq add end */
 };
 VREG_CONSUMERS(LVS6) = {
@@ -611,21 +614,21 @@ apq8064_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L7,  0, 1, 0, 1850000, 2950000, NULL,          0,     0),
 	RPM_LDO(L8,  0, 1, 0, 2800000, 2800000, NULL,          0,     0),
 /* OPPO 2012-07-27 zwx Modify begin for sensor */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L9,  0, 1, 0, 3000000, 3000000, NULL,          0,     0),
 #else
 	RPM_LDO(L9,  0, 1, 0, 2850000, 2850000, NULL,          0,     0),
 #endif
 /* OPPO 2012-07-27 zwx Modify end */
 /* OPPO 2012-07-27 zwx Modify begin for WIFI */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L10, 0, 1, 0, 2900000, 2900000, NULL,          0,     0),
 #else
 	RPM_LDO(L10, 0, 1, 0, 2900000, 3000000, NULL,          0,     0),	
 #endif
 /* OPPO 2012-07-27 zwx Modify end */
 /* OPPO 2012-07-27 zwx Modify begin for LCD */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L11, 0, 1, 0, 3000000, 3000000, NULL,          0,     0),
 #else
 	RPM_LDO(L11, 0, 1, 0, 3100000, 3100000, NULL,          0,     0),	
@@ -635,24 +638,24 @@ apq8064_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L12, 0, 1, 0, 1200000, 1200000, "8921_s4",     0,     0),
 	RPM_LDO(L14, 0, 1, 0, 1800000, 1800000, NULL,          0,     0),
 	/*OPPO 2012-12-14 zhzhyon Modify for DVT headset detect*/
-	#ifndef CONFIG_VENDOR_EDIT
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L15, 0, 1, 0, 1800000, 2950000, NULL,          0,     0),
-	#else
+#else
 	RPM_LDO(L15, 0, 1, 0, 3300000, 3300000, NULL,          0,     0),
-	#endif
+#endif
 	/*OPPO 2012-12-14 zhzhyon Modify end*/
 	RPM_LDO(L16, 0, 1, 0, 2800000, 2800000, NULL,          0,     0),
 	RPM_LDO(L17, 0, 1, 0, 2000000, 2000000, NULL,          0,     0),
 	RPM_LDO(L18, 0, 1, 0, 1300000, 1800000, "8921_s4",     0,     0),
 /* OPPO 2012-07-27 zwx Modify begin for WIFI */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L21, 0, 1, 0, 1050000, 1050000, NULL,          0,     0),
 #else
 	RPM_LDO(L21, 0, 1, 0, 1800000, 1800000, NULL,          0,     0),	
 #endif
 /* OPPO 2012-07-27 zwx Modify end */
 /* OPPO 2012-07-27 zwx Modify begin for LCD */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	RPM_LDO(L22, 0, 1, 0, 2600000, 2600000, NULL,          0,     0),
 #else
 	RPM_LDO(L22, 0, 1, 0, 1800000, 2200000, NULL,          0,     0),		

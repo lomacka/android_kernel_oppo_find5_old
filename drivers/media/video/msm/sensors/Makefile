@@ -19,4 +19,3 @@ obj-$(CONFIG_VX6953) += vx6953.o
 obj-$(CONFIG_IMX135) += imx135.o
 obj-$(CONFIG_S5K6A3YX) += s5k6a3yx_v4l2.o
 obj-$(CONFIG_IMX091) += imx091.o
-obj-$(CONFIG_S5K8AAY) += s5k8aay_v4l2.o
