@@ -194,10 +194,12 @@ static ssize_t msm_pm_mode_attr_store(struct kobject *kobj,
 			msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_SUSPEND])) {
 			kp.arg = &mode->suspend_enabled;
 			ret = param_set_byte(buf, &kp);
+			pr_info("%s: %s %s %d\n", __func__, msm_pm_sleep_mode_labels[i], msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_SUSPEND], mode->suspend_enabled);
 		} else if (!strcmp(attr->attr.name,
 			msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_IDLE])) {
 			kp.arg = &mode->idle_enabled;
 			ret = param_set_byte(buf, &kp);			
+			pr_info("%s: %s %s %d\n", __func__, msm_pm_sleep_mode_labels[i], msm_pm_mode_attr_labels[MSM_PM_MODE_ATTR_IDLE], mode->idle_enabled);
 		}
 
 		break;
