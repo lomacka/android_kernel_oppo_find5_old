@@ -128,10 +128,12 @@ static char sleep_out[2] = {
 	0x00,
 };
 
+#if 0
 static char brightness_setting[3] = {
 	0x51,	//brightness_setting
 	0x0f, 0xff,
 };
+#endif
 
 static char display_off[2] = {
 	0x28,	//display off
@@ -143,7 +145,7 @@ static char sleep_in[2] = {
 	0x00,
 };
 
-static char deep_stand_by[8] = {
+static char deep_stand_by[2] = {
 	0xb1,	//Deep standby off (option)
 	0x01,
 };
@@ -290,10 +292,12 @@ static struct dsi_cmd_desc cmd_mipi_resume_sequence[] = {
 		sizeof(sleep_out), sleep_out},
 };
 
+#if 0
 static struct dsi_cmd_desc cmd_brightness_setting[] = {
 		{DTYPE_DCS_LWRITE, 1, 0, 0, 10,
 			sizeof(brightness_setting), brightness_setting},
 };
+#endif
 
 static struct dsi_cmd_desc cmd_sleep_and_off[] = {
 		{DTYPE_DCS_WRITE, 1, 0, 0, 150,
@@ -350,7 +354,7 @@ static int mipi_orise_rd(struct msm_fb_data_type *mfd, char addr)
 	cmd = &cmd_mipi_addr_buf;
 	mipi_dsi_cmds_rx(mfd, tp, rp, cmd, 4);
 	lp = (uint32 *)rp->data;
-	pr_info("############# zhengzk addr=%x, data=%x\n", addr, *lp);
+	//pr_info("############# zhengzk addr=%x, data=%x\n", addr, *lp);
 	return *lp;
 }
 #endif
@@ -385,11 +389,13 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 		else{
 			mipi_dsi_cmds_tx(&orise_tx_buf, cmd_mipi_initial_sequence,
 				ARRAY_SIZE(cmd_mipi_initial_sequence));
-			printk("huyu-------%s: lcd ESD reset initial!\n",__func__);
+			//printk("huyu-------%s: lcd ESD reset initial!\n",__func__);
+#if 0
 			mdelay(130);
 			//printk("huyu-------%s: lcd cmd_brightness_setting!\n",__func__);
 			mipi_dsi_cmds_tx(&orise_tx_buf, cmd_brightness_setting,
 				ARRAY_SIZE(cmd_brightness_setting));
+#endif
 			spin_lock_irqsave(&te_count_lock, flags);
 			flag_lcd_reset = false;
 			spin_unlock_irqrestore(&te_count_lock, flags);
@@ -407,10 +413,12 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 		mipi_dsi_cmds_tx(&orise_tx_buf, cmd_mipi_initial_sequence,
 			ARRAY_SIZE(cmd_mipi_initial_sequence));
 		//printk("huyu-------%s: lcd initial!\n",__func__);
+#if 0
 		mdelay(130);
 		//printk("huyu-------%s: lcd cmd_brightness_setting!\n",__func__);
 		mipi_dsi_cmds_tx(&orise_tx_buf, cmd_brightness_setting,
 			ARRAY_SIZE(cmd_brightness_setting));
+#endif
 		flag_lcd_resume = true;
 	}
 #endif
