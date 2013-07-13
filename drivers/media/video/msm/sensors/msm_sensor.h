@@ -215,12 +215,6 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl,
 			void __user *argp);
 int32_t msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl);
 int32_t msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl);
-/* OPPO 2012-09-15 yxq added begin for s5k6a3yx */
-int32_t s5k6a3yx_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl);
-int32_t s5k6a3yx_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl);
-int32_t imx135_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl);
-int32_t imx135_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl);
-/* OPPO 2012-09-15 yxq added end */
 
 int32_t msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl);
 int msm_sensor_i2c_probe(struct i2c_client *client,
@@ -267,6 +261,11 @@ int32_t msm_sensor_get_csi_params(struct msm_sensor_ctrl_t *s_ctrl,
 		struct csi_lane_params_t *sensor_output_info);
 
 struct msm_sensor_ctrl_t *get_sctrl(struct v4l2_subdev *sd);
+
+/* OPPO 2012-09-15 yxq added begin for s5k6a3yx */
+int32_t msm_sensor_enable_i2c_mux(struct msm_camera_i2c_conf *i2c_conf);
+int32_t msm_sensor_disable_i2c_mux(struct msm_camera_i2c_conf *i2c_conf);
+/* OPPO 2012-09-15 yxq added end */
 
 #define VIDIOC_MSM_SENSOR_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 10, void __user *)
