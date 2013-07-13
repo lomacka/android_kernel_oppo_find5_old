@@ -88,7 +88,9 @@ extern struct platform_device apq8064_device_qup_i2c_gsbi1;
 extern struct platform_device apq8064_device_qup_i2c_gsbi3;
 extern struct platform_device apq8064_device_qup_i2c_gsbi4;
 /* OPPO 2012-12-13 yxq Add begin for reason */
+#ifdef CONFIG_VENDOR_EDIT
 extern struct platform_device apq8064_device_qup_i2c_gsbi7;
+#endif
 /* OPPO 2012-12-13 yxq Add end */
 extern struct platform_device apq8064_device_qup_spi_gsbi5;
 extern struct platform_device apq8064_slim_ctrl;
@@ -404,7 +406,9 @@ extern struct platform_device msm_device_vfe;
 extern struct platform_device msm_device_vpe;
 extern struct platform_device mpq8064_device_qup_i2c_gsbi5;
 /* OPPO 2012-08-29 chenzj Add begin for gsbi5 as uart port */
+#ifdef CONFIG_VENDOR_EDIT
 extern struct platform_device apq8064_device_uart_gsbi5;
+#endif
 /* OPPO 2012-08-29 chenzj Add end */
 
 extern struct platform_device msm8660_iommu_domain_device;

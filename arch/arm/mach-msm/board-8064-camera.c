@@ -23,7 +23,9 @@
 #include "devices.h"
 #include "board-8064.h"
 /* OPPO 2012-08-11 yxq added begin for led */
+#ifdef CONFIG_VENDOR_EDIT
 #include <linux/i2c/ssl3252.h>
+#endif
 /* OPPO 2012-08-11 yxq added end */
 
 #ifdef CONFIG_MSM_CAMERA
@@ -185,6 +187,7 @@ static struct msm_gpiomux_config apq8064_cam_common_configs[] = {
 		},
 	},
 /* OPPO 2012-07-19 yxq added begin for main camera's RST_N */
+#ifdef CONFIG_VENDOR_EDIT
 	{
 		.gpio = 33,
 		.settings = {
@@ -212,10 +215,11 @@ static struct msm_gpiomux_config apq8064_cam_common_configs[] = {
 			[GPIOMUX_SUSPENDED] = &cam_settings[0],
 		},
 	},
+#endif
 /* OPPO 2012-08-06 yxq added end */
 			
 /* OPPO 2012-10-21 yxq added begin for s5k6a3yx's I2C */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{
 		.gpio = 20,
 		.settings = {
@@ -235,7 +239,7 @@ static struct msm_gpiomux_config apq8064_cam_common_configs[] = {
 };
 
 /* OPPO 2012-07-19 yxq modified begin for led */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 #define VFE_CAMIF_TIMER1_GPIO 3
 #define VFE_CAMIF_TIMER2_GPIO 1
 #else
@@ -252,12 +256,14 @@ static struct msm_camera_sensor_flash_src msm_flash_src = {
 };
 
 /* OPPO 2012-07-19 yxq added begin for led */
+#ifdef CONFIG_VENDOR_EDIT
 static struct msm_camera_sensor_flash_src oppo_flash_src = {
 	.flash_sr_type = MSM_CAMERA_FLASH_SRC_OPPO,
 	._fsrc.oppo_src.low_current = 200,
 	._fsrc.oppo_src.high_current = 400,
 	._fsrc.oppo_src.led_control = &oppo_led_control,
 };
+#endif
 /* OPPO 2012-07-19 yxq added end */
 
 static struct msm_gpiomux_config apq8064_cam_2d_configs[] = {
@@ -311,7 +317,7 @@ static struct msm_bus_vectors cam_video_vectors[] = {
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 		.ab  = 140451840,
 /* OPPO 2012-12-27 yxq Modify begin for reason */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 		.ib  = 561807360,
 #else
 	    .ib  = 1123614720,
@@ -358,7 +364,7 @@ static struct msm_bus_vectors cam_zsl_vectors[] = {
 		.src = MSM_BUS_MASTER_VFE,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 /* OPPO 2012-11-29 yxq Modify begin for VFE overflow problem */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
         .ab  = 302071680,
 		.ib  = 1208286720,
 #else
@@ -438,7 +444,7 @@ static struct camera_vreg_t apq_8064_front_cam_vreg[] = {
 };
 
 /* OPPO 2012-07-19 yxq modified begin for main camera's RST_N */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 #define CAML_RSTN PM8921_GPIO_PM_TO_SYS(28)
 #else
 #define CAML_RSTN 33
@@ -472,7 +478,7 @@ static struct msm_camera_gpio_conf apq8064_back_cam_gpio_conf = {
 
 static struct gpio apq8064_front_cam_gpio[] = {
 /* OPPO 2012-08-06 yxq modified begin for front camera's gpio */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{4, GPIOF_DIR_IN, "CAMIF_MCLK"},
 	{12, GPIOF_DIR_IN, "CAMIF_I2C_DATA"},
 	{13, GPIOF_DIR_IN, "CAMIF_I2C_CLK"},
@@ -487,24 +493,8 @@ static struct gpio apq8064_front_cam_gpio[] = {
 };
 
 static struct msm_gpio_set_tbl apq8064_front_cam_gpio_set_tbl[] = {
-/* OPPO 2012-08-06 yxq modified begin for front camera's gpio setting */
-#if 0
 	{CAMR_RSTN, GPIOF_OUT_INIT_LOW, 10000},
 	{CAMR_RSTN, GPIOF_OUT_INIT_HIGH, 10000},
-#else
-  /* OPPO 2012-09-13 yxq modified begin for s5k6a3yx's XSHUTDOWN */
-  #if 0
-	{37, GPIOF_OUT_INIT_LOW, 10000},
-	{37, GPIOF_OUT_INIT_HIGH, 10000},
-	{CAMR_RSTN, GPIOF_OUT_INIT_LOW, 10000},
-	{CAMR_RSTN, GPIOF_OUT_INIT_HIGH, 10000},
-  #else
-	{CAMR_RSTN, GPIOF_OUT_INIT_LOW, 10000},
-	{CAMR_RSTN, GPIOF_OUT_INIT_HIGH, 10000},
-  #endif
-  /* OPPO 2012-09-13 yxq modified end */
-#endif
-/* OPPO 2012-08-06 yxq modified end */
 };
 
 static struct msm_camera_gpio_conf apq8064_front_cam_gpio_conf = {
@@ -633,8 +623,6 @@ static struct msm_camera_i2c_conf apq8064_imx091_i2c_conf = {
 	.mux_dev = &msm8960_device_i2c_mux_gsbi4,
 	.i2c_mux_mode = MODE_L,
 };
-/* OPPO 2012-10-26 yxq added end */
-
 
 static struct msm_camera_sensor_platform_info sensor_board_info_imx091 = {
 	.mount_angle	= 270,
@@ -646,7 +634,7 @@ static struct msm_camera_sensor_platform_info sensor_board_info_imx091 = {
 };
 
 /* OPPO 2012-07-19 yxq deleted begin for main camera has no eeprom */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 static struct i2c_board_info imx091_eeprom_i2c_info = {
 	I2C_BOARD_INFO("imx091_eeprom", 0x21),
 };
@@ -673,13 +661,14 @@ static struct msm_camera_sensor_info msm_camera_sensor_imx091_data = {
 	.sensor_type = BAYER_SENSOR,
 	.actuator_info = &msm_act_main_cam_1_info,
 /* OPPO 2012-07-19 yxq deleted begin for main camera has no eeprom */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	.eeprom_info = &imx091_eeprom_info,
 #endif
 /* OPPO 2012-07-19 yxq deleted end */
 };
 
 /* OPPO 2012-09-11 yxq added begin for imx135 */
+#ifdef CONFIG_VENDOR_EDIT
 static struct camera_vreg_t apq8064_imx135_vreg[] = {
 	{"cam_vana", REG_LDO, 2700000, 2850000, 85600},
 	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
@@ -720,13 +709,7 @@ static struct msm_camera_csi_lane_params imx135_csi_lane_params = {
 };
 
 static struct msm_camera_sensor_platform_info sensor_board_info_imx135 = {
-/* OPPO 2012-11-28 zhengzk Modify begin for reason */
-#if 0
-	.mount_angle	= 270,
-#else
 	.mount_angle	= 90,
-#endif
-/* OPPO 2012-11-28 zhengzk Modify end */
 	.cam_vreg = apq8064_imx135_vreg,
 	.num_vreg = ARRAY_SIZE(apq8064_imx135_vreg),
 	.gpio_conf = &apq8064_imx135_gpio_conf,
@@ -749,6 +732,7 @@ static struct msm_camera_sensor_info msm_camera_sensor_imx135_data = {
 	.sensor_type = BAYER_SENSOR,
 	.actuator_info = &msm_act_main_cam_1_info,
 };
+#endif
 /* OPPO 2012-09-11 yxq added end */
 
 static struct camera_vreg_t apq_8064_s5k3l1yx_vreg[] = {
@@ -821,85 +805,16 @@ static struct msm_camera_sensor_info msm_camera_sensor_mt9m114_data = {
 	.sensor_type = YUV_SENSOR,
 };
 
-/* OPPO 2012-08-29 yxq added begin for s5k8aay */
-static struct camera_vreg_t apq8064_s5k8aay_vreg[] = {
-	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
-	{"cam_vdig", REG_VS, 1225000, 1225000, 105000},
-	{"cam_vio", REG_VS, 0, 0, 0},
-	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
-};
-
-static struct gpio apq8064_s5k8aay_gpio[] = {
-	{2, GPIOF_DIR_IN, "CAMIF_MCLK"},	
-	{34, GPIOF_DIR_OUT, "CAM_RESET"},	
-	{37, GPIOF_DIR_OUT, "CAM2_PWD_N"},
-};
-
-static struct msm_gpio_set_tbl apq8064_s5k8aay_gpio_set_tbl[] = {
-	{37, GPIOF_OUT_INIT_LOW, 10000},
-	{37, GPIOF_OUT_INIT_HIGH, 10000},
-	{CAMR_RSTN, GPIOF_OUT_INIT_LOW, 10000},
-	{CAMR_RSTN, GPIOF_OUT_INIT_HIGH, 10000},
-};
-
-static struct msm_camera_gpio_conf apq8064_s5k8aay_gpio_conf = {
-	.cam_gpiomux_conf_tbl = apq8064_cam_2d_configs,
-	.cam_gpiomux_conf_tbl_size = ARRAY_SIZE(apq8064_cam_2d_configs),
-	.cam_gpio_common_tbl = apq8064_common_cam_gpio,
-	.cam_gpio_common_tbl_size = ARRAY_SIZE(apq8064_common_cam_gpio),
-	.cam_gpio_req_tbl = apq8064_s5k8aay_gpio,
-	.cam_gpio_req_tbl_size = ARRAY_SIZE(apq8064_s5k8aay_gpio),
-	.cam_gpio_set_tbl = apq8064_s5k8aay_gpio_set_tbl,
-	.cam_gpio_set_tbl_size = ARRAY_SIZE(apq8064_s5k8aay_gpio_set_tbl),
-};
-
-static struct msm_camera_i2c_conf apq8064_s5k8aay_i2c_conf = {
-	.use_i2c_mux = 1,
-	.mux_dev = &msm8960_device_i2c_mux_gsbi4,
-	.i2c_mux_mode = MODE_L,
-};
-
-static struct msm_camera_csi_lane_params s5k8aay_csi_lane_params = {
-	.csi_lane_assign = 0xE4,
-	.csi_lane_mask = 0x1,
-};
-
-static struct msm_camera_sensor_platform_info sensor_board_info_s5k8aay = {
-	.mount_angle = 90,
-	.cam_vreg = apq8064_s5k8aay_vreg,
-	.num_vreg = ARRAY_SIZE(apq8064_s5k8aay_vreg),
-	.gpio_conf = &apq8064_s5k8aay_gpio_conf,
-	.i2c_conf = &apq8064_s5k8aay_i2c_conf,
-	.csi_lane_params = &s5k8aay_csi_lane_params,
-};
-
-static struct msm_camera_sensor_flash_data flash_s5k8aay = {
-	.flash_type = MSM_CAMERA_FLASH_NONE
-};
-
-static struct msm_camera_sensor_info msm_camera_sensor_s5k8aay_data = {
-	.sensor_name = "s5k8aay",
-	.pdata = &msm_camera_csi_device_data[1],
-	.flash_data = &flash_s5k8aay,
-	.sensor_platform_info = &sensor_board_info_s5k8aay,
-	.csi_if = 1,
-	.camera_type = FRONT_CAMERA_2D,
-	.sensor_type = YUV_SENSOR,
-};
-/* OPPO 2012-08-29 yxq added end */
-
 /* OPPO 2012-09-13 yxq added begin for s5k6a3yx */
+#ifdef CONFIG_VENDOR_EDIT
 static struct camera_vreg_t apq8064_s5k6a3yx_vreg[] = {
 	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
-	//{"cam_vdig", REG_VS, 1225000, 1225000, 105000},
 	{"cam_vio", REG_VS, 0, 0, 0},
 	{"cam_vaf", REG_LDO, 2800000, 2850000, 300000},
 };
 
 static struct gpio apq8064_s5k6a3yx_gpio[] = {
 	{2, GPIOF_DIR_IN, "CAMIF_MCLK"},
-	//{20, GPIOF_DIR_IN, "CAMIF_I2C_DATA"},
-	//{21, GPIOF_DIR_IN, "CAMIF_I2C_CLK"},
 	{CAMR_RSTN, GPIOF_DIR_OUT, "CAM_RESET"},
 };
 
@@ -945,6 +860,7 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k6a3yx_data = {
 	.camera_type = FRONT_CAMERA_2D,
 	.sensor_type = BAYER_SENSOR,
 };
+#endif
 /* OPPO 2012-08-29 yxq added end */
 
 static struct msm_camera_sensor_flash_data flash_ov2720 = {
@@ -1020,10 +936,12 @@ static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
 	I2C_BOARD_INFO("sc628a", 0x6E),
 	},
 /* OPPO 2012-09-11 yxq added begin for imx135 */
+#ifdef CONFIG_VENDOR_EDIT
 	{
 	I2C_BOARD_INFO("imx135", 0x10),
 	.platform_data = &msm_camera_sensor_imx135_data,
 	},
+#endif
 /* OPPO 2012-09-11 yxq added end */
 	{
 	I2C_BOARD_INFO("imx091", 0x1a),
@@ -1033,18 +951,13 @@ static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
 	I2C_BOARD_INFO("s5k3l1yx", 0x20),
 	.platform_data = &msm_camera_sensor_s5k3l1yx_data,
 	},
-	/* OPPO 2012-08-11 yxq added begin for led */
+/* OPPO 2012-08-11 yxq added begin for led */
+#ifdef CONFIG_VENDOR_EDIT
 	{
 	I2C_BOARD_INFO("ssl3252", 0x30),
 	},
-    /* OPPO 2012-08-11 yxq added end */
-	/* OPPO 2012-08-29 yxq added begin for s5k8aay */
-	{
-	I2C_BOARD_INFO("s5k8aay", 0x3C),
-	.platform_data = &msm_camera_sensor_s5k8aay_data,
-	},
-    /* OPPO 2012-08-29 yxq added end */
-
+#endif
+/* OPPO 2012-08-11 yxq added end */
 };
 
 struct msm_camera_board_info apq8064_camera_board_info = {
@@ -1053,6 +966,7 @@ struct msm_camera_board_info apq8064_camera_board_info = {
 };
 
 /* OPPO 2012-10-21 yxq added begin for s5k6a3yx */
+#ifdef CONFIG_VENDOR_EDIT
 static struct i2c_board_info apq8064_subcamera_i2c_boardinfo[] = {
 	{
 	I2C_BOARD_INFO("s5k6a3yx", 0x10),
@@ -1064,6 +978,7 @@ struct msm_camera_board_info apq8064_subcamera_board_info = {
 	.board_info = apq8064_subcamera_i2c_boardinfo,
 	.num_i2c_board_info = ARRAY_SIZE(apq8064_subcamera_i2c_boardinfo),
 };
+#endif
 /* OPPO 2012-10-21 yxq added end */
 #endif
 #endif

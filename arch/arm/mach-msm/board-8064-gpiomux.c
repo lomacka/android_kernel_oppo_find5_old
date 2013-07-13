@@ -26,6 +26,7 @@
 #include "board-8064.h"
 
 
+#ifdef CONFIG_VENDOR_EDIT
 /* OPPO 2012-11-14 DuYuanHua Add to enable/disable the HOTSWAP feature 
 *   If enabled, we will use GPIO_72 as the sim card detection pin
 *   Level High -- Card Inserted
@@ -33,6 +34,7 @@
 */
 #define OPPO_FEATURE_UIM_CARD_HOTSWAP
 /* OPPO 2012-11-14 DuYuanHua Add End*/
+#endif
 
 #if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
 static struct gpiomux_setting gpio_eth_config = {
@@ -63,7 +65,7 @@ static struct gpiomux_setting gpio_spi_cs_config = {
 };
 
 /* OPPO 2012-11-12 liujun Delete begin for gpio 32 is used for volume down key */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 /* Chip selects for EPM SPI clients */
 static struct gpiomux_setting gpio_epm_spi_cs_config = {
 	.func = GPIOMUX_FUNC_6,
@@ -179,7 +181,7 @@ struct msm_gpiomux_config vcap_configs[] = {
 		}
 	},
 /* OPPO 2012-11-03 wangjw Delete begin for gpio23 is evt hallsensor */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{
 		.gpio = 23,
 		.settings = {
@@ -396,11 +398,11 @@ static struct gpiomux_setting mbhc_hs_detect = {
 static struct gpiomux_setting cdc_mclk = {
 	.func = GPIOMUX_FUNC_1,
 	/*OPPO 2012-08-20 zhzhyon Modify for MCLK driver strength*/
-	#ifndef CONFIG_VENDOR_EDIT
+#ifndef CONFIG_VENDOR_EDIT
 	.drv = GPIOMUX_DRV_8MA,
-	#else
+#else
 	.drv = GPIOMUX_DRV_2MA,
-	#endif
+#endif
 	/*OPPO 2012-08-20 zhzhyon Modify end*/
 	.pull = GPIOMUX_PULL_NONE,
 };
@@ -501,7 +503,7 @@ static struct gpiomux_setting hdmi_active_2_cfg = {
 /* OPPO 2012-11-14 DuYuanHua Modify End*/
 
 /* OPPO 2012-08-29 chenzj Delete begin for del unused code which used uart */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 static struct gpiomux_setting gsbi5_suspended_cfg = {
 	.func = GPIOMUX_FUNC_2,
 	.drv = GPIOMUX_DRV_12MA,
@@ -513,7 +515,7 @@ static struct gpiomux_setting gsbi5_active_cfg = {
 	.drv = GPIOMUX_DRV_12MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
-#endif
+#else
 /* OPPO 2012-08-29 chenzj Delete end */
 
 /* OPPO 2012-07-12 chenzj Add begin for gsbi5 as uart port */
@@ -528,7 +530,9 @@ static struct gpiomux_setting gsbi5_uart_active_cfg = {
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
+#endif
 /* OPPO 2012-07-12 chenzj Add end */
+
 //OPPO 2012-12-18 huyu del for lcd 5V_enable for dvt
 #ifndef CONFIG_VENDOR_EDIT
 static struct gpiomux_setting sx150x_suspended_cfg = {
@@ -698,7 +702,7 @@ static struct msm_gpiomux_config apq8064_hdmi_configs[] __initdata = {
 		},
 	},
 	/* OPPO 2012-11-14 DuYuanHua Modify to config GPIO_72 as input pin for sim card detection */
-	#ifndef OPPO_FEATURE_UIM_CARD_HOTSWAP
+#ifndef OPPO_FEATURE_UIM_CARD_HOTSWAP
 	{
 		.gpio = 72,
 		.settings = {
@@ -706,7 +710,7 @@ static struct msm_gpiomux_config apq8064_hdmi_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &hdmi_suspend_cfg,
 		},
 	},
-	#endif
+#endif
 	/* OPPO 2012-11-14 DuYuanHua Modify End*/
 };
 
@@ -739,7 +743,7 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 	},
 #if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
 /* OPPO 2012-08-29 chenzj Delete begin for del unused code */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{
 		.gpio      = 51,		/* GSBI5 QUP SPI_DATA_MOSI */
 		.settings = {
@@ -774,6 +778,7 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 	},
 #endif
 /* OPPO 2012-07-12 chenzj Add begin for init gsbi5 as uart port */
+#ifdef CONFIG_VENDOR_EDIT
 	{
 		.gpio      = 51,		/* GSBI5 UART*/
 		.settings = {
@@ -788,6 +793,7 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gsbi5_uart_suspended_cfg,
 		},
 	},
+#endif
 /* OPPO 2012-07-12 chenzj Add end */			
 	{
 		.gpio      = 30,		/* FP CS */
@@ -796,7 +802,7 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 		},
 	},
 /* OPPO 2012-11-12 liujun Delete begin for gpio 32 is used for volume down key */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	{
 		.gpio      = 32,		/* EPM CS */
 		.settings = {
@@ -840,6 +846,7 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 };
 
 /* OPPO 2012-12-13 yxq Add begin for s5k6a3yx's I2C */
+#ifdef CONFIG_VENDOR_EDIT
 static struct msm_gpiomux_config apq8064_gsbi7_i2c_config[] __initdata = {
 	{
 		.gpio      = 85,		/* GSBI7 QUP I2C_CLK */
@@ -856,6 +863,7 @@ static struct msm_gpiomux_config apq8064_gsbi7_i2c_config[] __initdata = {
 		},
 	},
 };
+#endif
 /* OPPO 2012-12-13 yxq Add end */
 
 static struct msm_gpiomux_config apq8064_slimbus_config[] __initdata = {
@@ -1162,7 +1170,7 @@ static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 };
 
 /* OPPO 2012-08-29 chenzj Delete begin for del unused code */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 static struct msm_gpiomux_config mpq8064_gsbi5_i2c_configs[] __initdata = {
 	{
 		.gpio      = 53,			/* GSBI5 I2C QUP SDA */
@@ -1395,7 +1403,7 @@ void __init apq8064_init_gpiomux(void)
 	if (machine_is_mpq8064_cdp() || machine_is_mpq8064_hrd() ||
 		 machine_is_mpq8064_dtv()) {
 /* OPPO 2012-08-29 chenzj Delete begin for del unused code */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 		msm_gpiomux_install(mpq8064_gsbi5_i2c_configs,
 				ARRAY_SIZE(mpq8064_gsbi5_i2c_configs));
 #endif
@@ -1419,9 +1427,11 @@ void __init apq8064_init_gpiomux(void)
 		msm_gpiomux_install(apq8064_gsbi_configs,
 				ARRAY_SIZE(apq8064_gsbi_configs));
 /* OPPO 2012-12-14 yxq added begin for s5k6a3yx's I2C */
+#ifdef CONFIG_VENDOR_EDIT
 		if (get_pcb_version() >= 30) {
 			msm_gpiomux_install(apq8064_gsbi7_i2c_config, ARRAY_SIZE(apq8064_gsbi7_i2c_config));
 		}
+#endif
 /* OPPO 2012-12-14 yxq added end */
 	}
 

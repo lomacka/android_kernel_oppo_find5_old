@@ -61,7 +61,9 @@ static struct resource msm_fb_resources[] = {
 #define LVDS_FRC_PANEL_NAME "lvds_frc_fhd"
 #define MIPI_VIDEO_TOSHIBA_WSVGA_PANEL_NAME "mipi_video_toshiba_wsvga"
 /* OPPO 2012-07-21 zhengzk Add begin for add orise module */
+#ifdef CONFIG_VENDOR_EDIT
 #define MIPI_VIDEO_ORISE_OPPO_PANEL_NAME	"mipi_video_orise_oppo"
+#endif
 /* OPPO 2012-07-21 zhengzk Add end */
 #define MIPI_VIDEO_CHIMEI_WXGA_PANEL_NAME "mipi_video_chimei_wxga"
 #define HDMI_PANEL_NAME "hdmi_msm"
@@ -89,7 +91,7 @@ static void set_mdp_clocks_for_wuxga(void);
 static int msm_fb_detect_panel(const char *name)
 {
 	/* OPPO 2012-07-24 zhengzk Modify for MIPI start */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	u32 version;
 	if (machine_is_apq8064_liquid()) {
 		version = socinfo_get_platform_version();
@@ -131,8 +133,6 @@ static int msm_fb_detect_panel(const char *name)
 #endif
 /* OPPO 2012-07-24 zhengzk Modify for MIPI end */
 
-/* OPPO 2012-10-13 zhengzk Delete begin for remove HDMI module */
-#if 1
 	if (!strncmp(name, HDMI_PANEL_NAME,
 			strnlen(HDMI_PANEL_NAME,
 				PANEL_NAME_MAX_LEN))) {
@@ -140,9 +140,6 @@ static int msm_fb_detect_panel(const char *name)
 			set_mdp_clocks_for_wuxga();
 		return 0;
 	}
-#endif
-/* OPPO 2012-10-13 zhengzk Delete end */
-
 
 	return -ENODEV;
 }
@@ -374,12 +371,10 @@ static struct platform_device wfd_device = {
 #define LCD_5V_EN			85
 #define LCD_5V_EN_DVT		81
 
-//#define LM3528_ENABLE_GPIO   86
-
 static bool dsi_power_on;
 static int mipi_dsi_panel_power(int on)
 {
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 	/* OPPO 2012-08-31 zhengzk Modify begin for LCD */
 #ifdef CONFIG_1080P_LCD	//lcd 1080p
 	static struct regulator *reg_lvs7, *reg_l2, *reg_l11, *reg_ext_3p3v;
@@ -428,7 +423,7 @@ static int mipi_dsi_panel_power(int on)
 				return -ENODEV;
 		}
 		/* OPPO 2012-08-31 zhengzk Modify begin for LCD */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 		rc = regulator_set_voltage(reg_l11, 3000000, 3000000);
 #else
 		rc = regulator_set_voltage(reg_l11, 3100000, 3100000);
@@ -440,7 +435,7 @@ static int mipi_dsi_panel_power(int on)
 		}
 
 		/* OPPO 2012-08-31 zhengzk Add begin for LCD */
-	
+#ifdef CONFIG_VENDOR_EDIT	
 		reg_l22 = regulator_get(NULL, "8921_l22");
 		if (IS_ERR(reg_l22)) {
 				pr_err("could not get 8921_l22, rc = %ld\n",
@@ -463,6 +458,7 @@ static int mipi_dsi_panel_power(int on)
 					return -EINVAL;
 			}
 		}
+#endif
 		/* OPPO 2012-08-31 zhengzk Modify end */
 
 		if (machine_is_apq8064_liquid()) {
@@ -503,21 +499,20 @@ static int mipi_dsi_panel_power(int on)
 			return -ENODEV;
 		}
 
+#ifdef CONFIG_VENDOR_EDIT	
 		if(get_pcb_version() >= 30)
 		{
-			//printk("%s: ---------------------  dvt!\n", __func__);
 			rc = gpio_request(LCD_5V_EN_DVT, "lcd_5v_en");
 		}
 		else
 		{
-			//printk("%s: ---------------------  evt!\n", __func__);
 			rc = gpio_request(LCD_5V_EN, "lcd_5v_en");
 		}
 		if (rc) {
 			pr_err("request gpio 86 failed, rc=%d\n", rc);
 			return -ENODEV;
 		}
-
+#endif
 		dsi_power_on = true;
 	}
 
@@ -528,6 +523,7 @@ static int mipi_dsi_panel_power(int on)
 			return -ENODEV;
 		}
 		/* OPPO 2012-08-31 zhengzk Add begin for LCD */
+#ifdef CONFIG_VENDOR_EDIT	
 		rc = regulator_enable(reg_l22);
 		if (rc) {
 			pr_err("enable l22 failed, rc=%d\n", rc);
@@ -548,9 +544,7 @@ static int mipi_dsi_panel_power(int on)
 			pr_err("%s: unable to enable LCD_5V_EN!!!!!!!!!!!!\n", __func__);
 			return -ENODEV;
 		}
-
-		gpio_set_value_cansleep(gpio36, 0);
-		gpio_set_value_cansleep(gpio25, 1);
+#endif
 		
 		rc = regulator_set_optimum_mode(reg_l11, 110000);
 		if (rc < 0) {
@@ -583,19 +577,9 @@ static int mipi_dsi_panel_power(int on)
 			}
 			gpio_set_value_cansleep(mpp3, 1);
 		}
-
-		//rc = gpio_direction_output(LM3528_ENABLE_GPIO, 1);
-		//if (rc) {
-		//	pr_err("%s: unable to enable lm3528!!!!!!!!!!!!\n", __func__);
-		//	return -ENODEV;
-		//}		
+		gpio_set_value_cansleep(gpio36, 0);
+		gpio_set_value_cansleep(gpio25, 1);
 	} else {
-		//rc = gpio_direction_output(LM3528_ENABLE_GPIO, 0);
-		//if (rc) {
-		//	pr_err("%s: unable to enable lm3528!!!!!!!!!!!!\n", __func__);
-		//	return -ENODEV;
-		//}		
-
 		gpio_set_value_cansleep(gpio25, 0);
 		gpio_set_value_cansleep(gpio36, 1);
 
@@ -616,6 +600,7 @@ static int mipi_dsi_panel_power(int on)
 			return -ENODEV;
 		}
 
+#ifdef CONFIG_VENDOR_EDIT
 		if(get_pcb_version() >= 30)
 		{
 			rc = gpio_direction_output(LCD_5V_EN_DVT, 0);
@@ -636,7 +621,7 @@ static int mipi_dsi_panel_power(int on)
 			return -ENODEV;
 		}
 		/* OPPO 2012-08-31 zhengzk Modify end */
-
+#endif
 		
 		rc = regulator_disable(reg_lvs7);
 		if (rc) {
@@ -846,7 +831,7 @@ static struct platform_device mipi_dsi2lvds_bridge_device = {
 };
 
 /* OPPO 2012-07-23 zhengzk Modify for add orise module */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT
 static int toshiba_gpio[] = {LPM_CHANNEL};
 static struct mipi_dsi_panel_platform_data toshiba_pdata = {
 	.gpio = toshiba_gpio,
@@ -1181,7 +1166,7 @@ void __init apq8064_init_fb(void)
 		platform_device_register(&mipi_dsi2lvds_bridge_device);
 	if (machine_is_apq8064_mtp())
 	/* OPPO 2012-07-23 zhengzk Modify begin for add orise module */
-#if 0
+#ifndef CONFIG_VENDOR_EDIT	
 		platform_device_register(&mipi_dsi_toshiba_panel_device);
 #else
 		platform_device_register(&mipi_dsi_orise_panel_device);

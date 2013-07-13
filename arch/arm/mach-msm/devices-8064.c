@@ -57,7 +57,9 @@
 #define MSM_UART3DM_PHYS	(MSM_GSBI3_PHYS + 0x40000)
 #define MSM_UART7DM_PHYS	(MSM_GSBI7_PHYS + 0x40000)
 /* OPPO 2012-07-12 chenzj Add begin for uart port  */
+#ifdef CONFIG_VENDOR_EDIT
 #define MSM_UART5DM_PHYS	(MSM_GSBI5_PHYS + 0x40000)
+#endif
 /* OPPO 2012-07-12 chenzj Add end */
 
 /* GSBI QUP devices */
@@ -268,6 +270,7 @@ struct platform_device apq8064_device_qup_i2c_gsbi1 = {
 };
 
 /* OPPO 2012-12-13 yxq Add begin for reason */
+#ifdef CONFIG_VENDOR_EDIT
 static struct resource resources_qup_i2c_gsbi7[] = {
 	{
 		.name	= "gsbi_qup_i2c_addr",
@@ -307,6 +310,7 @@ struct platform_device apq8064_device_qup_i2c_gsbi7 = {
 	.num_resources	= ARRAY_SIZE(resources_qup_i2c_gsbi7),
 	.resource	= resources_qup_i2c_gsbi7,
 };
+#endif
 /* OPPO 2012-12-13 yxq Add end */
 
 struct platform_device apq8064_device_qup_i2c_gsbi3 = {
@@ -425,6 +429,7 @@ struct platform_device mpq8064_device_qup_i2c_gsbi5 = {
 };
 
 /* OPPO 2012-08-29 chenzj Add begin for add gsbi5 uart debug port */
+#ifdef CONFIG_VENDOR_EDIT
 static struct resource resources_uart_gsbi5[] = {
 	{
 		.start	= GSBI5_UARTDM_IRQ,
@@ -451,6 +456,7 @@ struct platform_device apq8064_device_uart_gsbi5 = {
 	.num_resources	= ARRAY_SIZE(resources_uart_gsbi5),
 	.resource	= resources_uart_gsbi5,
 };
+#endif
 /* OPPO 2012-08-29 chenzj Add end */
 
 static struct resource resources_uart_gsbi7[] = {
