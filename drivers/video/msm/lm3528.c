@@ -200,7 +200,7 @@ static int lm3528_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 	rc = gpio_direction_output(LM3528_ENABLE_GPIO, 1);
 	if (rc) {
-		pr_err("%s: unable to enable!!!!!!!!!!!!\n", __func__);
+		pr_err("%s: unable to enable LM3528_ENABLE_GPIO!\n", __func__);
 		goto exit;
 	}
 	
@@ -211,6 +211,8 @@ static int lm3528_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 exit:
 	if (rc)
        lm3528_client = 0;
+    else
+    	pr_info("%s: OK\n", __func__);
 	return rc;
 
 }
@@ -221,29 +223,25 @@ static int lm3528_i2c_remove(struct i2c_client *client)
 }
 static int lm3528_suspend(struct i2c_client *client, pm_message_t mesg)
 {
-#if 1
 	int rc ;
-	printk("huyu --------%s: \n", __func__);
+	pr_debug("%s:\n", __func__);
 	rc = gpio_direction_output(LM3528_ENABLE_GPIO, 0);
 	if (rc) {
-		pr_err("%s: unable to enable!!!!!!!!!!!!\n", __func__);
+		pr_err("%s: unable to enable LM3528_ENABLE_GPIO!\n", __func__);
 		return rc;
 	}
-#endif 
 	return 0;
 }
 static int lm3528_resume(struct i2c_client *client)
 {
-#if 1
 	int rc ;
 
-	printk("huyu --------%s: \n", __func__);
+	pr_debug("%s:\n", __func__);
 	rc = gpio_direction_output(LM3528_ENABLE_GPIO, 1);
 	if (rc) {
-		pr_err("%s: unable to enable!!!!!!!!!!!!\n", __func__);
+		pr_err("%s: unable to enable LM3528_ENABLE_GPIO!\n", __func__);
 		return rc;
 	}
-#endif
 	return 0;
 }
 static const struct i2c_device_id lm3528_i2c_id[] = {
