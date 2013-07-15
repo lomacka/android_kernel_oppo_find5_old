@@ -1258,7 +1258,9 @@ static int __devinit pm8xxx_adc_probe(struct platform_device *pdev)
 	pa_therm = regulator_get(adc_pmic->dev, "pa_therm");
 	if (IS_ERR(pa_therm)) {
 		rc = PTR_ERR(pa_therm);
+#ifndef CONFIG_VENDOR_EDIT
 		pr_err("failed to request pa_therm vreg with error %d\n", rc);
+#endif
 		pa_therm = NULL;
 	}
 	return 0;
