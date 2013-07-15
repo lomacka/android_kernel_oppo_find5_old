@@ -320,7 +320,7 @@ static void ssl3252_shutdown(void)
 #else
 	gpio_free(36);
 	gpio_free(1);
-    printk(KERN_INFO "ssl3252.c: " "yxq\n");
+    CDBG_FLASH("%s\n", __func__);
 #endif
 /* OPPO 2012-08-11 yxq modified end */
 }
@@ -694,6 +694,7 @@ static int ssl3252_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	
 	CDBG_FLASH("%s: X\n", __func__);
 	
+	pr_info("%s: OK\n", __func__);
 	//return 0;
 	
 exit:
