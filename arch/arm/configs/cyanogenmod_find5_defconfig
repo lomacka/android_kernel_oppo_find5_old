@@ -2254,25 +2254,7 @@ CONFIG_S5K6A3YX_OPPO=y
 # CONFIG_OV7692 is not set
 # CONFIG_V4L_MEM2MEM_DRIVERS is not set
 CONFIG_MSM_VIDC=y
-CONFIG_RADIO_ADAPTERS=y
-# CONFIG_RADIO_SI470X is not set
-# CONFIG_USB_MR800 is not set
-# CONFIG_USB_DSBR is not set
-# CONFIG_RADIO_MAXIRADIO is not set
-# CONFIG_I2C_SI4713 is not set
-# CONFIG_RADIO_SI4713 is not set
-# CONFIG_USB_KEENE is not set
-# CONFIG_RADIO_TEA5764 is not set
-# CONFIG_RADIO_SAA7706H is not set
-# CONFIG_RADIO_TEF6862 is not set
-# CONFIG_RADIO_WL1273 is not set
-
-#
-# Texas Instruments WL128x FM driver (ST based)
-#
-# CONFIG_RADIO_WL128X is not set
-CONFIG_RADIO_IRIS=y
-CONFIG_RADIO_IRIS_TRANSPORT=m
+# CONFIG_RADIO_ADAPTERS is not set
 
 #
 # Graphics support
