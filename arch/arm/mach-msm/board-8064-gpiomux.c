@@ -795,12 +795,14 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 	},
 #endif
 /* OPPO 2012-07-12 chenzj Add end */			
+#if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
 	{
 		.gpio      = 30,		/* FP CS */
 		.settings = {
 			[GPIOMUX_SUSPENDED] = &gpio_spi_cs_config,
 		},
 	},
+#endif
 /* OPPO 2012-11-12 liujun Delete begin for gpio 32 is used for volume down key */
 #ifndef CONFIG_VENDOR_EDIT
 	{
@@ -811,12 +813,14 @@ static struct msm_gpiomux_config apq8064_gsbi_configs[] __initdata = {
 	},
 #endif
 /* OPPO 2012-11-12 liujun Delete end */
+#if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
 	{
 		.gpio      = 53,		/* NOR CS */
 		.settings = {
 			[GPIOMUX_SUSPENDED] = &gpio_spi_cs_config,
 		},
 	},
+#endif
 	{
 		.gpio      = 82,	/* GSBI7 UART2 TX */
 		.settings = {
