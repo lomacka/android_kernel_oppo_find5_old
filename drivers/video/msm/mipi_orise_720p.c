@@ -207,7 +207,7 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 
 	mipi_init_cmd(mfd);
 
-	printk("720p mipi_orise_lcd_on complete\n");
+	pr_info("%s: complete\n", __func__);
 	return 0;
 }
 
@@ -220,7 +220,7 @@ static int mipi_orise_lcd_off(struct platform_device *pdev)
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 	
-	printk("720p mipi_orise_lcd_off complete\n");
+	pr_info("%s: complete\n", __func__);
 
 	return 0;
 }
@@ -345,15 +345,13 @@ int mipi_orise_device_register_720p(struct msm_panel_info *pinfo,
 	ret = platform_device_add_data(pdev, &orise_panel_data,
 		sizeof(orise_panel_data));
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_add_data failed!\n", __func__);
+		pr_err("%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_register failed!\n", __func__);
+		pr_err("%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 
@@ -369,10 +367,9 @@ static int __init mipi_orise_lcd_init(void)
 	mipi_dsi_buf_alloc(&orise_tx_buf, DSI_BUF_SIZE);
 	mipi_dsi_buf_alloc(&orise_rx_buf, DSI_BUF_SIZE);
 
-	printk("huyu----%s: --\n", __func__);
 	if(get_pcb_version() < 20 )
 	{
-		printk("huyu----%s: lcd is 720p!--\n", __func__);
+		pr_info("%s: lcd is 720p\n", __func__);
 		return platform_driver_register(&this_driver);
 
 	}

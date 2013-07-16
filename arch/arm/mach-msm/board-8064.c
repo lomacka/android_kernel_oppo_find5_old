@@ -3509,8 +3509,6 @@ struct i2c_registry {
 			  __func__, PN544_FIRM, ret);
 	  }
 	  gpio_set_value(APQ_NFC_FIRM_GPIO, 0);
-	  
-	  printk(KERN_ERR "%s:liuhd for nfc gpio---\n",__func__);
 
 /* OPPO 2012-12-30 yuyi Add begin for PVDD>ENABLE */
  ldo123_get_failed:
@@ -3521,29 +3519,26 @@ struct i2c_registry {
 /* OPPO 2012-07-11 liuhd Add end */
 //OPPO 2012-10-23 huyu add for lcd compatible
 static struct i2c_board_info lcd_1080p_info[] = {
-
 	{
 		I2C_BOARD_INFO("lm3528", 0x36),
 	},
 };
 
 static struct i2c_registry lcd_1080p_i2c_devices[] __initdata = {
- {
-	 I2C_SURF | I2C_LIQUID | I2C_FFA |I2C_MPQ_CDP |I2C_RUMI |I2C_MPQ_HRD | I2C_MPQ_DTV,
-	 APQ_8064_GSBI3_QUP_I2C_BUS_ID,
-	 lcd_1080p_info,
-	 ARRAY_SIZE(lcd_1080p_info),
- },
+	{
+		I2C_SURF | I2C_LIQUID | I2C_FFA |I2C_MPQ_CDP |I2C_RUMI |I2C_MPQ_HRD | I2C_MPQ_DTV,
+		APQ_8064_GSBI3_QUP_I2C_BUS_ID,
+		lcd_1080p_info,
+		ARRAY_SIZE(lcd_1080p_info),
+	},
 };
 
 static void register_lcd_1080p_i2c_devices(void) {
- printk("----%s: lcd is --\n", __func__);
- if(get_pcb_version() >= 20)
- {
-	 printk("----%s: register lcd device is 1080p --\n", __func__);
-	 i2c_register_board_info(lcd_1080p_i2c_devices[0].bus,
-		 lcd_1080p_i2c_devices[0].info, lcd_1080p_i2c_devices[0].len);
- }
+	if(get_pcb_version() >= 20)
+	{
+		i2c_register_board_info(lcd_1080p_i2c_devices[0].bus,
+			lcd_1080p_i2c_devices[0].info, lcd_1080p_i2c_devices[0].len);
+	}
 }
 //OPPO 2012-10-23 huyu add for lcd compatible
 //yanghai add
@@ -3567,8 +3562,6 @@ static void SN3193_power_init(void)
 			 __func__, SN3193_SDB, ret);
 	 }
 	 gpio_set_value(APQ_SLED_SDB_GPIO, 1);
-	 
-	 printk(KERN_ERR "%s:yanghai for SN3193_SDB gpio---\n",__func__);
 }
 #endif
 //yanghai add end
@@ -3933,14 +3926,14 @@ static void __init apq8064_common_init(void)
 	/* OPPO 2012-09-12 Van Modify begin for factory mode*/
 #ifdef CONFIG_VENDOR_EDIT
 	systeminfo_kobj = kobject_create_and_add("systeminfo", NULL);
-	printk("songxh create systeminto node!\n");
+	printk("create systeminto node\n");
 	if (systeminfo_kobj)
 		rc = sysfs_create_group(systeminfo_kobj, &attr_group);
 	/* OPPO 2012-09-12 Van Modify end */
 
 //WuJinping@OnlineRD.AirService.Phone 2013.1.7, Add for modem subsystem restart not need pin
 	modeminfo_kobj = kobject_create_and_add("modeminfo", NULL);
-	printk("create modeminfo node by wjp!\n");
+	printk("create modeminfo node\n");
 	if (modeminfo_kobj)
 		rc = sysfs_create_group(modeminfo_kobj, &modeminfo_attr_group);
 #endif /* VENDOR_EDIT */

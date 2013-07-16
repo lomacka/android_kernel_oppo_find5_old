@@ -37,7 +37,6 @@ spinlock_t te_count_lock;
 unsigned long flags;
 
 #define MIPI_CMD_INIT
-//#define MIPI_READ
 
 extern int get_pcb_version(void);
 #define LCD_TE_GPIO  83
@@ -150,7 +149,6 @@ static char deep_stand_by[2] = {
 	0x01,
 };
 
-#if 1
 static char gamma_R[25] = {
 	0xc7,
 	0x00,
@@ -237,9 +235,8 @@ static char gamma_B[25] = {
 };
 
 
-#endif
 //////////////////////////////////////////////
-#if 1
+
 static struct dsi_cmd_desc cmd_mipi_initial_sequence[] = {
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
 			sizeof(protect_off), protect_off},
@@ -250,14 +247,12 @@ static struct dsi_cmd_desc cmd_mipi_initial_sequence[] = {
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
 			sizeof(hsync_output), hsync_output},
 //--------------------------------------------------------- 	
-#if 1
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
 			sizeof(gamma_R), gamma_R},
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
 			sizeof(gamma_G), gamma_G},
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
 			sizeof(gamma_B), gamma_B},
-#endif
 //--------------------------------------------------------- 		
 		
 		{DTYPE_GEN_LWRITE, 1, 0, 0, 10,
@@ -277,7 +272,6 @@ static struct dsi_cmd_desc cmd_mipi_initial_sequence[] = {
 		{DTYPE_DCS_WRITE, 1, 0, 0, 10,
 			sizeof(sleep_out), sleep_out},
 };
-#endif
 
 static struct dsi_cmd_desc cmd_mipi_resume_sequence[] = {
 	//{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
@@ -322,7 +316,7 @@ static struct dsi_cmd_desc cmd_mipi_off_sequence[] = {
 static int operate_display_switch(void)
 {
 	int ret = 0;
-	printk("%s:state=%d.\n", __func__, te_state);
+	pr_info("%s:state=%d.\n", __func__, te_state);
 	
 	spin_lock_irqsave(&te_state_lock, flags);
 	if(te_state)
@@ -335,29 +329,6 @@ static int operate_display_switch(void)
 	return ret;
 }
 /* OPPO 2013-03-07 zhengzk Add end */
-
-#ifdef MIPI_READ
-static char addr_buf[2] = {0x53, 0x00};		//read register backlight ctrl
-static struct dsi_cmd_desc cmd_mipi_addr_buf = {
-	DTYPE_GEN_READ/*DTYPE_DCS_READ*/, 1, 0, 1, 5, sizeof(addr_buf), addr_buf};
-static int mipi_orise_rd(struct msm_fb_data_type *mfd, char addr)
-{
-	struct dsi_buf *rp, *tp;
-	struct dsi_cmd_desc *cmd;
-	int *lp;
-	addr_buf[0] = addr;
-	tp = &orise_tx_buf;
-	rp = &orise_rx_buf;
-	mipi_dsi_buf_init(rp);
-	mipi_dsi_buf_init(tp);
-
-	cmd = &cmd_mipi_addr_buf;
-	mipi_dsi_cmds_rx(mfd, tp, rp, cmd, 4);
-	lp = (uint32 *)rp->data;
-	//pr_info("############# zhengzk addr=%x, data=%x\n", addr, *lp);
-	return *lp;
-}
-#endif
 
 static bool flag_lcd_resume = false;
 static bool flag_lcd_reset = false;
@@ -381,7 +352,7 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 #ifdef MIPI_CMD_INIT
 	if(flag_lcd_resume)
 	{
-		//printk("huyu-------%s: lcd resume!\n",__func__);
+		pr_debug("%s: lcd resume!\n",__func__);
 		if(!flag_lcd_reset){
 			mipi_dsi_cmds_tx(&orise_tx_buf, cmd_mipi_resume_sequence,
 				ARRAY_SIZE(cmd_mipi_resume_sequence));
@@ -389,7 +360,6 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 		else{
 			mipi_dsi_cmds_tx(&orise_tx_buf, cmd_mipi_initial_sequence,
 				ARRAY_SIZE(cmd_mipi_initial_sequence));
-			//printk("huyu-------%s: lcd ESD reset initial!\n",__func__);
 #if 0
 			mdelay(130);
 			//printk("huyu-------%s: lcd cmd_brightness_setting!\n",__func__);
@@ -409,10 +379,9 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 		schedule_delayed_work(&techeck_work, msecs_to_jiffies(5000));
 	}
 	else{
-		//printk("huyu-------%s: lcd initial!\n",__func__);
+		pr_debug("%s: lcd initial!\n",__func__);
 		mipi_dsi_cmds_tx(&orise_tx_buf, cmd_mipi_initial_sequence,
 			ARRAY_SIZE(cmd_mipi_initial_sequence));
-		//printk("huyu-------%s: lcd initial!\n",__func__);
 #if 0
 		mdelay(130);
 		//printk("huyu-------%s: lcd cmd_brightness_setting!\n",__func__);
@@ -427,26 +396,8 @@ static int mipi_orise_lcd_on(struct platform_device *pdev)
 
 	flag_lcd_node_onoff = false;
 
-	printk("1080p mipi_orise_lcd_on complete\n");
-
-#ifdef MIPI_READ
-mipi_orise_rd(mfd, 0x53);
-mipi_orise_rd(mfd, 0x51);
-mipi_orise_rd(mfd, 0xce);
-mipi_orise_rd(mfd, 0xb0);
-mipi_orise_rd(mfd, 0x55);
-mipi_orise_rd(mfd, 0xd6);
-mipi_orise_rd(mfd, 0xc3);
-mipi_orise_rd(mfd, 0x04);
-mipi_orise_rd(mfd, 0x05);
-mipi_orise_rd(mfd, 0x06);
-mipi_orise_rd(mfd, 0x07);
-mipi_orise_rd(mfd, 0x54);
-mipi_orise_rd(mfd, 0xda);
-mipi_orise_rd(mfd, 0xdb);
-mipi_orise_rd(mfd, 0xdc);
-mipi_orise_rd(mfd, 0xe2);
-#endif
+	pr_info("%s: complete\n", __func__);
+	
 	return 0;
 }
 
@@ -474,7 +425,7 @@ static int mipi_orise_lcd_off(struct platform_device *pdev)
 	irq_state--;
 	disable_irq(irq);
 
-	printk("1080p mipi_orise_lcd_off complete\n");
+	pr_info("%s: complete\n", __func__);
 
 	return 0;
 }
@@ -483,7 +434,7 @@ static void mipi_orise_set_backlight(struct msm_fb_data_type *mfd)
 {
 	int bl_level;
 	bl_level = mfd->bl_level;
-	//printk("backlight=%d\n", bl_level);
+	pr_debug("%s: backlight=%d\n", __func__, bl_level);
 	if(bl_level >=0 && bl_level < 128)
 	{
 		lm3528_bkl_control(bl_level);
@@ -494,17 +445,15 @@ static void mipi_orise_set_backlight(struct msm_fb_data_type *mfd)
 
 #define LCD_TEST_RESET	1
 
-
-
 #ifdef LCD_TEST_RESET
 /* OPPO 2012-10-14 zhengzk Add begin for FTM */
 static ssize_t attr_orise_reinit(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
-	printk("huyu----%s:\n",__func__);
+	pr_info("%s:\n",__func__);
 	if(flag_lcd_off)
 	{
-		printk("%s: system is suspending, don't do this!\n",__func__);
+		pr_err("%s: system is suspending, don't do this!\n",__func__);
 		return 0;
 	}
 	
@@ -551,22 +500,16 @@ static ssize_t attr_orise_lcdoff(struct device *dev,
 static ssize_t attr_orise_dispswitch(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
-	printk("ESD function test--------\n");
+	pr_info("%s: ESD function test\n", __func__);
 	operate_display_switch();
 	return 0;
 }
 
-#if 0
-static DEVICE_ATTR(orise_bkl, S_IRUGO | S_IWUSR, attr_orise_rda_bkl, attr_orise_wra_bkl);
-#endif
 static DEVICE_ATTR(reinit, S_IRUGO , attr_orise_reinit, NULL);
 static DEVICE_ATTR(lcdon, S_IRUGO , attr_orise_lcdon, NULL);
 static DEVICE_ATTR(lcdoff, S_IRUGO , attr_orise_lcdoff, NULL);
 static DEVICE_ATTR(dispswitch, S_IRUGO , attr_orise_dispswitch, NULL);
 static struct attribute *fs_attrs[] = {
-#if 0
-	&dev_attr_orise_bkl.attr,
-#endif
 	&dev_attr_reinit.attr,
 	&dev_attr_lcdon.attr,
 	&dev_attr_lcdoff.attr,
@@ -585,22 +528,18 @@ static irqreturn_t TE_irq_thread_fn(int irq, void *dev_id)
 	spin_lock_irqsave(&te_count_lock, flags);
 	te_count ++;
 	spin_unlock_irqrestore(&te_count_lock, flags);
-	//printk("huyu------%s: te_count = %d\n",__func__, te_count);
 	return IRQ_HANDLED;
 }
 static void techeck_work_func( struct work_struct *work )
 {
-	//printk("huyu------%s: te_count = %d \n",__func__, te_count);
 	if(flag_lcd_off) 
 	{
-	
-		printk("huyu------%s: lcd is off ing ! don't do this ! te_count = %d \n",__func__,te_count);
+		pr_debug("%s: lcd is off ing ! don't do this ! te_count = %d \n",__func__,te_count);
 		return ;
 	}
 	if(te_count < 80)
 	{
-		printk("huyu------%s: lcd resetting ! te_count = %d \n",__func__,te_count);
-		printk("irq_state=%d\n", irq_state);
+		pr_debug("%s: lcd resetting ! te_count = %d irq_state=%d\n",__func__,te_count, irq_state);
 		flag_lcd_resume = true;
 
 		spin_lock_irqsave(&te_count_lock, flags);
@@ -754,15 +693,13 @@ int mipi_orise_device_register_1080p(struct msm_panel_info *pinfo,
 	ret = platform_device_add_data(pdev, &orise_panel_data,
 		sizeof(orise_panel_data));
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_add_data failed!\n", __func__);
+		pr_err("%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_register failed!\n", __func__);
+		pr_err("%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 
@@ -777,10 +714,9 @@ static int __init mipi_orise_lcd_init(void)
 	mipi_dsi_buf_alloc(&orise_tx_buf, DSI_BUF_SIZE);
 	mipi_dsi_buf_alloc(&orise_rx_buf, DSI_BUF_SIZE);
 
-	printk("huyu----%s: --\n", __func__);
 	if(get_pcb_version() >= 20)
 	{
-		printk("huyu----%s: lcd is 1080p!--\n", __func__);
+		pr_info("%s: lcd is 1080p\n", __func__);
 		return platform_driver_register(&this_driver);
 	}
 

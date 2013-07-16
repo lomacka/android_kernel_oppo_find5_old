@@ -62,7 +62,7 @@ static int __init mipi_video_orise_oppo_pt_init(void)
 
 	if(get_pcb_version() < 20)
 	{
-		printk("huyu----%s: lcd is 720p!--\n", __func__);
+		pr_info("%s: lcd is 720p\n", __func__);
 		pinfo.xres = 720;
 		pinfo.yres = 1280;
 		pinfo.lcdc.xres_pad = 0;
@@ -115,11 +115,11 @@ static int __init mipi_video_orise_oppo_pt_init(void)
 		ret = mipi_orise_device_register_720p(&pinfo, MIPI_DSI_PRIM,
 							MIPI_DSI_PANEL_720P_PT);
 		if (ret)
-			printk(KERN_ERR "%s: failed to register device!\n", __func__);
+			pr_err("%s: failed to register device!\n", __func__);
 	}
 	else
 	{
-		printk("huyu----%s: lcd is 1080p!--\n", __func__);
+		pr_info("%s: lcd is 1080p\n", __func__);
 		pinfo.xres = 1080;
 		pinfo.yres = 1920;
 
@@ -188,7 +188,7 @@ static int __init mipi_video_orise_oppo_pt_init(void)
 		ret = mipi_orise_device_register_1080p(&pinfo, MIPI_DSI_PRIM,
 							MIPI_DSI_PANEL_720P_PT);
 		if (ret)
-			printk(KERN_ERR "%s: failed to register device!\n", __func__);
+			pr_err("%s: failed to register device!\n", __func__);
 	}
 
 	return ret;
