@@ -366,15 +366,15 @@ extern struct platform_device msm8064_device_watchdog;
 extern struct platform_device msm9615_device_watchdog;
 extern struct platform_device fsm9xxx_device_watchdog;
 
+#ifdef CONFIG_MSM_QDSS
 extern struct platform_device apq8064_qdss_device;
 extern struct platform_device msm_qdss_device;
-#ifdef CONFIG_MSM_QDSS
 extern struct platform_device msm_etb_device;
 extern struct platform_device msm_tpiu_device;
 extern struct platform_device msm_funnel_device;
-#endif
 extern struct platform_device msm_etm_device;
 extern struct platform_device apq8064_etm_device;
+#endif
 
 extern struct platform_device msm_bus_8064_apps_fabric;
 extern struct platform_device msm_bus_8064_sys_fabric;

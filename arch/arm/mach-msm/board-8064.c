@@ -2849,13 +2849,13 @@ static struct platform_device *common_devices[] __initdata = {
 #endif
 /* OPPO 2012-09-29 liuhd Delete end */
 	&epm_adc_device,
-	&apq8064_qdss_device,
 #ifdef CONFIG_MSM_QDSS
+	&apq8064_qdss_device,
 	&msm_etb_device,
 	&msm_tpiu_device,
 	&msm_funnel_device,
-#endif
 	&apq8064_etm_device,
+#endif
 	&apq_cpudai_slim_4_rx,
 	&apq_cpudai_slim_4_tx,
 #ifdef CONFIG_MSM_GEMINI
