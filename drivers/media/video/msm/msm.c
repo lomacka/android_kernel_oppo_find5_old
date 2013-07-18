@@ -3386,7 +3386,7 @@ int msm_sensor_register(struct v4l2_subdev *sensor_sd)
 	struct msm_cam_v4l2_device *pcam;
 	struct msm_sensor_ctrl_t *s_ctrl;
 
-	D("%s for %s\n", __func__, sensor_sd->name);
+	pr_info("%s for %s\n", __func__, sensor_sd->name);
 
 	/* allocate the memory for the camera device first */
 	pcam = kzalloc(sizeof(*pcam), GFP_KERNEL);
@@ -3447,7 +3447,7 @@ int msm_sensor_register(struct v4l2_subdev *sensor_sd)
 	[g_server_dev.mctl_node_info.num_mctl_nodes]
 	= video_device_node_name(pcam->mctl_node.pvdev);
 
-	pr_info("%s mctl_node_name[%d] = %s\n", __func__,
+	D("%s mctl_node_name[%d] = %s\n", __func__,
 		g_server_dev.mctl_node_info.num_mctl_nodes,
 		g_server_dev.mctl_node_info.mctl_node_name
 		[g_server_dev.mctl_node_info.num_mctl_nodes]);
