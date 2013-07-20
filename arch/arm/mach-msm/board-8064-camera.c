@@ -294,8 +294,8 @@ static struct msm_bus_vectors cam_preview_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_VFE,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = 27648000,
-		.ib  = 110592000,
+		.ab  = 600000000,
+		.ib  = 2656000000UL,
 	},
 	{
 		.src = MSM_BUS_MASTER_VPE,
@@ -315,14 +315,8 @@ static struct msm_bus_vectors cam_video_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_VFE,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = 140451840,
-/* OPPO 2012-12-27 yxq Modify begin for reason */
-#ifndef CONFIG_VENDOR_EDIT
-		.ib  = 561807360,
-#else
-	    .ib  = 1123614720,
-#endif
-/* OPPO 2012-12-27 yxq Modify end */
+		.ab  = 600000000,
+		.ib  = 2656000000UL,
 	},
 	{
 		.src = MSM_BUS_MASTER_VPE,
@@ -342,8 +336,8 @@ static struct msm_bus_vectors cam_snapshot_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_VFE,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = 274423680,
-		.ib  = 1097694720,
+		.ab  = 600000000,
+		.ib  = 2656000000UL,
 	},
 	{
 		.src = MSM_BUS_MASTER_VPE,
@@ -363,15 +357,8 @@ static struct msm_bus_vectors cam_zsl_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_VFE,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-/* OPPO 2012-11-29 yxq Modify begin for VFE overflow problem */
-#ifndef CONFIG_VENDOR_EDIT
-        .ab  = 302071680,
-		.ib  = 1208286720,
-#else
-        .ab  = 600000000,
-		.ib = 3624860160UL
-#endif
-/* OPPO 2012-11-29 yxq Modify end */
+		.ab  = 600000000,
+		.ib  = 2656000000UL,
 	},
 	{
 		.src = MSM_BUS_MASTER_VPE,
@@ -944,7 +931,7 @@ static struct i2c_board_info apq8064_camera_i2c_boardinfo[] = {
 #endif
 /* OPPO 2012-09-11 yxq added end */
 	{
-	I2C_BOARD_INFO("imx091", 0x1a),
+	I2C_BOARD_INFO("imx091", 0x34),
 	.platform_data = &msm_camera_sensor_imx091_data,
 	},
 	{

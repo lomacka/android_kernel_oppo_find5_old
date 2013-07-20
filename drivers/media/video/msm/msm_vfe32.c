@@ -18,6 +18,7 @@
 #include <linux/atomic.h>
 #include <linux/regulator/consumer.h>
 #include <linux/clk.h>
+#include <linux/ratelimit.h>
 #include <mach/irqs.h>
 #include <mach/camera.h>
 #include <media/v4l2-device.h>
@@ -1271,7 +1272,7 @@ static int vfe32_configure_pingpong_buffers(int id, int path)
 	outch = vfe32_get_ch(path);
 	if (outch->ping.ch_paddr[0] && outch->pong.ch_paddr[0]) {
 		/* Configure Preview Ping Pong */
-		pr_info("%s Configure ping/pong address for %d",
+		pr_debug("%s Configure ping/pong address for %d",
 						__func__, path);
 		vfe32_put_ch_ping_addr(outch->ch0,
 			outch->ping.ch_paddr[0]);
@@ -1348,12 +1349,12 @@ static int vfe32_proc_general(
 		vfe32_general_cmd[cmd->id], cmd->length);
 	switch (cmd->id) {
 	case VFE_CMD_RESET:
-		pr_info("vfe32_proc_general: cmdID = %s\n",
+		pr_debug("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
 		vfe32_reset();
 		break;
 	case VFE_CMD_START:
-		pr_info("vfe32_proc_general: cmdID = %s\n",
+		pr_debug("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
 		vfe_mode = vfe32_ctrl->operation_mode
 			& ~(VFE_OUTPUTS_RDI0|VFE_OUTPUTS_RDI1);
@@ -1393,7 +1394,7 @@ static int vfe32_proc_general(
 		vfe32_update();
 		break;
 	case VFE_CMD_CAPTURE_RAW:
-		pr_info("%s: cmdID = VFE_CMD_CAPTURE_RAW\n", __func__);
+		pr_debug("%s: cmdID = VFE_CMD_CAPTURE_RAW\n", __func__);
 		if (copy_from_user(&snapshot_cnt, (void __user *)(cmd->value),
 				sizeof(uint32_t))) {
 			rc = -EFAULT;
@@ -1451,7 +1452,7 @@ static int vfe32_proc_general(
 		rc = vfe32_capture(pmctl, snapshot_cnt);
 		break;
 	case VFE_CMD_START_RECORDING:
-		pr_info("vfe32_proc_general: cmdID = %s\n",
+		pr_debug("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
 		if (vfe32_ctrl->operation_mode &
 			VFE_OUTPUTS_PREVIEW_AND_VIDEO)
@@ -1472,7 +1473,7 @@ static int vfe32_proc_general(
 		rc = vfe32_start_recording(pmctl);
 		break;
 	case VFE_CMD_STOP_RECORDING:
-		pr_info("vfe32_proc_general: cmdID = %s\n",
+		pr_debug("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
 		rc = vfe32_stop_recording(pmctl);
 		break;
@@ -2281,7 +2282,7 @@ static int vfe32_proc_general(
 		}
 		break;
 	case VFE_CMD_STOP:
-		pr_info("vfe32_proc_general: cmdID = %s\n",
+		pr_debug("vfe32_proc_general: cmdID = %s\n",
 			vfe32_general_cmd[cmd->id]);
 		vfe32_stop();
 		break;
@@ -2774,7 +2775,7 @@ static void vfe32_process_reg_update_irq(void)
 
 	switch (vfe32_ctrl->liveshot_state) {
 	case VFE_STATE_START_REQUESTED:
-		pr_info("%s enabling liveshot output\n", __func__);
+		pr_debug("%s enabling liveshot output\n", __func__);
 		if (vfe32_ctrl->outpath.output_mode &
 			VFE32_OUTPUT_MODE_PRIMARY) {
 			msm_camera_io_w(1, vfe32_ctrl->vfebase +
@@ -2813,7 +2814,7 @@ static void vfe32_process_reg_update_irq(void)
 		}
 		break;
 	case VFE_STATE_STOPPED:
-		pr_info("%s Sending STOP_LS ACK\n", __func__);
+		pr_debug("%s Sending STOP_LS ACK\n", __func__);
 		vfe32_send_isp_msg(vfe32_ctrl, MSG_ID_STOP_LS_ACK);
 		vfe32_ctrl->liveshot_state = VFE_STATE_IDLE;
 		break;
@@ -3023,56 +3024,56 @@ static void vfe32_process_error_irq(uint32_t errStatus)
 		pr_err("vfe32_irq: realign bug CR overflow\n");
 
 	if (errStatus & VFE32_IMASK_VIOLATION) {
-		pr_err("vfe32_irq: violation interrupt\n");
+		pr_err_ratelimited("vfe32_irq: violation interrupt\n");
 		reg_value = msm_camera_io_r(
 				vfe32_ctrl->vfebase + VFE_VIOLATION_STATUS);
-		pr_err("%s: violationStatus  = 0x%x\n", __func__, reg_value);
+		pr_err_ratelimited("%s: violationStatus  = 0x%x\n", __func__, reg_value);
 	}
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_0_BUS_OVFL)
-		pr_err("vfe32_irq: image master 0 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 0 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_1_BUS_OVFL)
-		pr_err("vfe32_irq: image master 1 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 1 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_2_BUS_OVFL)
-		pr_err("vfe32_irq: image master 2 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 2 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_3_BUS_OVFL)
-		pr_err("vfe32_irq: image master 3 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 3 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_4_BUS_OVFL)
-		pr_err("vfe32_irq: image master 4 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 4 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_5_BUS_OVFL)
-		pr_err("vfe32_irq: image master 5 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 5 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_IMG_MAST_6_BUS_OVFL)
-		pr_err("vfe32_irq: image master 6 bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: image master 6 bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_AE_BG_BUS_OVFL)
-		pr_err("vfe32_irq: ae/bg stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: ae/bg stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_AF_BF_BUS_OVFL)
-		pr_err("vfe32_irq: af/bf stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: af/bf stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_AWB_BUS_OVFL)
-		pr_err("vfe32_irq: awb stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: awb stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_RS_BUS_OVFL)
-		pr_err("vfe32_irq: rs stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: rs stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_CS_BUS_OVFL)
-		pr_err("vfe32_irq: cs stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: cs stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_IHIST_BUS_OVFL)
-		pr_err("vfe32_irq: ihist stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: ihist stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_STATS_SKIN_BHIST_BUS_OVFL)
-		pr_err("vfe32_irq: skin/bhist stats bus overflow\n");
+		pr_err_ratelimited("vfe32_irq: skin/bhist stats bus overflow\n");
 
 	if (errStatus & VFE32_IMASK_AXI_ERROR)
-		pr_err("vfe32_irq: axi error\n");
+		pr_err_ratelimited("vfe32_irq: axi error\n");
 }
 
 static void vfe_send_outmsg(struct v4l2_subdev *sd, uint8_t msgid,
@@ -3823,7 +3824,7 @@ static void axi32_do_tasklet(unsigned long data)
 		if (atomic_read(&vfe32_ctrl->vstate)) {
 			if (qcmd->vfeInterruptStatus1 &
 					VFE32_IMASK_ERROR_ONLY_1) {
-				pr_err("irq	errorIrq\n");
+				pr_err_ratelimited("irq	errorIrq\n");
 				vfe32_process_error_irq(
 					qcmd->vfeInterruptStatus1 &
 					VFE32_IMASK_ERROR_ONLY_1);
@@ -4513,8 +4514,6 @@ static void msm_axi_process_irq(struct v4l2_subdev *sd, void *arg)
 				CAMIF_COMMAND_STOP_IMMEDIATELY,
 				vfe32_ctrl->vfebase +
 				VFE_CAMIF_COMMAND);
-			/*vfe32_send_isp_msg(vfe32_ctrl,
-				MSG_ID_SNAPSHOT_DONE);*//*OPPO*/
 		}
 	}
 }

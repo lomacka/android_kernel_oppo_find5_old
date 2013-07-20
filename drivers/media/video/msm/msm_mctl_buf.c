@@ -647,18 +647,19 @@ int msm_mctl_release_free_buf(struct msm_cam_media_controller *pmctl,
 		buf_phyaddr =
 			(uint32_t) videobuf2_to_pmem_contig(&buf->vidbuf, 0);
 		if (free_buf->ch_paddr[0] == buf_phyaddr) {
-			D("%s buf = 0x%x\n", __func__, free_buf->ch_paddr[0]);
-			//buf->state = MSM_BUFFER_STATE_UNUSED;
-			buf->state = MSM_BUFFER_STATE_QUEUED; /*OPPO HDR*/
+			D("%s Return buffer %d and mark it as QUEUED\n",
+				__func__, buf->vidbuf.v4l2_buf.index);
+			buf->state = MSM_BUFFER_STATE_QUEUED;
 			rc = 0;
 			break;
 		}
 	}
-
-	if (rc != 0)
-		pr_err("%s invalid buffer address ", __func__);
-
 	spin_unlock_irqrestore(&pcam_inst->vq_irqlock, flags);
+	
+	if (rc)
+		pr_err("%s Cannot find buffer %x", __func__,
+			free_buf->ch_paddr[0]);
+
 	return rc;
 }
 
