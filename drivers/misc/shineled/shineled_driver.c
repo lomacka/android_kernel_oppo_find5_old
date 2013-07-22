@@ -282,7 +282,7 @@ static int SN3193_open(struct inode *inode, struct file *file)
 	struct SN3193_sled *info = container_of(file->private_data,
 					       struct SN3193_sled, SN3193_miscdev);
 	file->private_data = info;
-	pr_info("%s:sn3193 open\n",__func__);
+	pr_debug("%s:sn3193 open\n",__func__);
 	return ret;
 }
 
@@ -305,33 +305,33 @@ static long SN3193_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case SLED_ENABLE:
 	         SN3193_enable_sled(1);
 		  SN3193_setCurrent_sled(0x01);
-		  pr_info("%s:enable sled\n",__func__);
+		  pr_debug("%s:enable sled\n",__func__);
 		 break;
 	case SLED_DISABLE:
 		SN3193_TurnOffOut_sled();
 		 SN3193_enable_sled(0);
              // mod_timer(&SN3193_sled_dev_sate->gsled_last_timer,0xffffffffL);
-	       pr_info("%s:disable sled\n",__func__);
+	       pr_debug("%s:disable sled\n",__func__);
 		 break;
 	case SLED_SET_WORKMOD:
 		if (copy_from_user(&val,(void __user *)arg, sizeof(unsigned int))) {
 			r = -EFAULT;
 		}
-		pr_info("%s;set sled work mod ,val:%d\n",__func__,val);
+		pr_debug("%s;set sled work mod ,val:%d\n",__func__,val);
 	       SN3193_workmod_sled(val);  //now we should set to val to 0
 		break;
 	case SLED_CONFIG_FEATURE:
 		if (copy_from_user(&val,(void __user *)arg, sizeof(unsigned int))) {
 			r = -EFAULT;
 		}
-		pr_info("%s;set stagnate mod,val:%d\n",__func__,val);
+		pr_debug("%s;set stagnate mod,val:%d\n",__func__,val);
 		SN3193_config_feature_sled(val);
 		break;
 	case SLED_SET_BTEATHTIME:
 		if (copy_from_user(t,(void __user *)arg, sizeof(unsigned int))) {
 			r = -EFAULT;
 		}
-		 pr_info("%s;set stagnate modl:%d,%d,%d,%d,%d\n",__func__,t[1],t[2],t[3],t[4],t[5]);
+		 pr_debug("%s;set stagnate modl:%d,%d,%d,%d,%d\n",__func__,t[1],t[2],t[3],t[4],t[5]);
 	         SN3193_SetBreathTime_sled(t[0],t[1],t[2],t[3],t[4],t[5]);
 	         SN3193_TimeUpdate_sled();
 		break;
@@ -342,7 +342,7 @@ static long SN3193_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		SN3193_TurnOnOut_sled(RED_SLED);
                SN3193_SetBrightness(RED_SLED,val);
 	        SN3193_upData_sled();
-	       pr_info("%s:set sled red,val:%d\n",__func__,val);
+	       pr_debug("%s:set sled red,val:%d\n",__func__,val);
 		break;
 	case SLED_SET_GREEEN:
 		if (copy_from_user(&val,(void __user *)arg, sizeof(unsigned int))) {
@@ -351,7 +351,7 @@ static long SN3193_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		 SN3193_TurnOnOut_sled(GREEN_SLED);
 	        SN3193_SetBrightness(GREEN_SLED,val);
 	        SN3193_upData_sled();
-	        pr_info("%s:set sled green,val:%d\n",__func__,val);
+	        pr_debug("%s:set sled green,val:%d\n",__func__,val);
 		break;
       case SLED_SET_BLUE:
 	  	if (copy_from_user(&val,(void __user *)arg, sizeof(unsigned int))) {
@@ -360,13 +360,13 @@ static long SN3193_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	        SN3193_TurnOnOut_sled(BLUE_SLED);
 	  	 SN3193_SetBrightness(BLUE_SLED,val);
 	        SN3193_upData_sled();
-		pr_info("%s:set sled blue,val:%d\n",__func__,val);
+		pr_debug("%s:set sled blue,val:%d\n",__func__,val);
 		break;
 	/*case SLED_SET_LASTTIME:
 		if (copy_from_user(&val,(void __user *)arg, sizeof(unsigned int))) {
 			r = -EFAULT;
 		}
-		pr_info("%s;set sledlast time,val:%d\n",__func__,val);
+		pr_debug("%s;set sledlast time,val:%d\n",__func__,val);
 		mod_timer(&SN3193_sled_dev_sate->gsled_last_timer,jiffies+val*HZ);
 		break;*/
 	default:
@@ -617,7 +617,7 @@ static int SN3193_probe(struct i2c_client *client, const struct i2c_device_id *i
 		ret = -ENOMEM;
 		goto err_exit;
 	}
-	pr_info("%s:sn3193 probe\n",__func__);
+
 	sn3193_sled_dev->i2c_dev   = client;
 	sn3193_sled_dev->SN3193_miscdev.minor = MISC_DYNAMIC_MINOR;
 	sn3193_sled_dev->SN3193_miscdev.name = "SN3193";
@@ -672,6 +672,8 @@ static int SN3193_probe(struct i2c_client *client, const struct i2c_device_id *i
         //SN3193_enable_diff_color_sled(BLUE_SLED);
         //mod_timer(&SN3193_sled_dev_sate->gsled_last_timer,jiffies+5*HZ);
        /**************************test******************/
+
+	pr_info("%s: OK\n", __func__);
 	return 0;
 err_group_register:
 	for(i = 0; i < 3; i ++ )
@@ -728,7 +730,7 @@ static int __init SN3193_dev_init(void)
 		ret = -ENOMEM;
 		goto err_exit;
 	}
-	pr_info("yanghai shineld driver init\n");
+	pr_info("%s:\n", __func__);
 	return i2c_add_driver(&SN3193_driver);
 err_exit:
 	return ret;
@@ -737,7 +739,7 @@ module_init(SN3193_dev_init);
 
 static void __exit SN3193_dev_exit(void)
 {
-	pr_info("Unloading SN3193 driver\n");
+	pr_info("%s:\n", __func__);
 	i2c_del_driver(&SN3193_driver);
 }
 module_exit(SN3193_dev_exit);
