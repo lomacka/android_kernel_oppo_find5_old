@@ -322,6 +322,7 @@ static void hdd_wdi_trace_enable(wpt_moduleid moduleId, v_U32_t bitmask)
       return;
    }
 
+#ifdef WLAN_DEBUG
    /* a mask was specified.  start by disabling all logging */
    wpalTraceSetLevel(moduleId, eWLAN_PAL_TRACE_LEVEL_NONE, 0);
 
@@ -336,6 +337,7 @@ static void hdd_wdi_trace_enable(wpt_moduleid moduleId, v_U32_t bitmask)
       level++;
       bitmask >>= 1;
    }
+#endif
 }
 #endif /* FEATURE_WLAN_INTEGRATED_SOC */
 

@@ -429,7 +429,7 @@ EXTRA_CFLAGS += $(INCS)
 # Some of the WLAN structures are larger, so we increase the size.
 # Note that Linux kernel threads have an 8K stack, so take care not
 # to exceed that value in a "normal" call tree
-EXTRA_CFLAGS += -Wframe-larger-than=4096
+EXTRA_CFLAGS += -Wframe-larger-than=4096 -Wno-unused-value -Wno-unused-variable
 
 CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DANI_BUS_TYPE_PLATFORM=1 \
@@ -448,10 +448,6 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DWNI_POLARIS_FW_OS=6 \
 		-DADVANCED=3 \
 		-DWNI_POLARIS_FW_PACKAGE=9 \
-		-DTRACE_RECORD \
-		-DPE_DEBUG_LOGW \
-		-DPE_DEBUG_LOGE \
-		-DDEBUG \
 		-DANI_LOGDUMP \
 		-DWLAN_PERF \
 		-DUSE_LOCKED_QUEUE \
@@ -459,7 +455,6 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DFEATURE_WLAN_UAPSD_FW_TRG_FRAMES \
 		-DWLAN_SOFTAP_FEATURE \
 		-Wall\
-		-DWLAN_DEBUG \
 		-D__linux__ \
 		-DMSM_PLATFORM \
 		-DFEATURE_WLAN_INTEGRATED_SOC \
@@ -467,8 +462,6 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DANI_MANF_DIAG \
 		-DWLAN_FEATURE_VOWIFI_11R \
 		-DWLAN_FEATURE_NEIGHBOR_ROAMING \
-		-DWLAN_FEATURE_NEIGHBOR_ROAMING_DEBUG \
-		-DWLAN_FEATURE_VOWIFI_11R_DEBUG \
 		-DFEATURE_WLAN_WAPI \
 		-DFEATURE_OEM_DATA_SUPPORT \
 		-DSOFTAP_CHANNEL_RANGE \
