@@ -2518,6 +2518,16 @@ static unsigned int msm_poll_config(struct file *fp,
 	return rc;
 }
 
+static void msm_send_error_event(int msg_type)
+{
+	struct v4l2_event v4l2_ev;
+	v4l2_ev.type = msg_type;
+	v4l2_ev.id = 0;
+	ktime_get_ts(&v4l2_ev.timestamp);
+	v4l2_event_queue(
+		g_server_dev.pcam_active->pvdev, &v4l2_ev);
+}
+
 static int msm_close_server(struct file *fp)
 {
 	struct v4l2_event_subscription sub;
@@ -2529,14 +2539,9 @@ static int msm_close_server(struct file *fp)
 	if (g_server_dev.use_count == 0) {
 		mutex_lock(&g_server_dev.server_lock);
 		if (g_server_dev.pcam_active) {
-			struct v4l2_event v4l2_ev;
 			msm_cam_stop_hardware(g_server_dev.pcam_active);
-			v4l2_ev.type = V4L2_EVENT_PRIVATE_START
-				+ MSM_CAM_APP_NOTIFY_ERROR_EVENT;
-			v4l2_ev.id = 0;
-			ktime_get_ts(&v4l2_ev.timestamp);
-			v4l2_event_queue(
-				g_server_dev.pcam_active->pvdev, &v4l2_ev);
+			msm_send_error_event(V4L2_EVENT_PRIVATE_START
+				+ MSM_CAM_APP_NOTIFY_ERROR_EVENT);
 		}
 		sub.type = V4L2_EVENT_ALL;
 		msm_server_v4l2_unsubscribe_event(
@@ -3504,6 +3509,16 @@ failure:
 }
 EXPORT_SYMBOL(msm_sensor_register);
 
+static int iommu_fault_handler(struct iommu_domain *domain,
+		struct device *dev, unsigned long iova, int flags)
+{
+	pr_err("iommu page fault has happened\n");
+	msm_send_error_event(V4L2_EVENT_PRIVATE_START
+		+ MSM_CAM_APP_NOTIFY_ERROR_EVENT);
+
+	return -ENOSYS;
+}
+
 static int __devinit msm_camera_probe(struct platform_device *pdev)
 {
 	int rc = 0, i;
@@ -3551,6 +3566,9 @@ static int __devinit msm_camera_probe(struct platform_device *pdev)
 			return rc;
 		}
 	}
+
+	iommu_set_fault_handler(msm_get_iommu_domain(CAMERA_DOMAIN),
+                        iommu_fault_handler);
 
 	msm_isp_register(&g_server_dev);
 	return rc;
