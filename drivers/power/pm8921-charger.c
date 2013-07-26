@@ -393,6 +393,7 @@ struct pm8921_chg_chip {
 
 	int eoc_vbatt_counter;
 	int cv_long_counter;
+	int batt_temp_high_counter;
 
     #ifdef BATT_CAPACITY_CALIB
     /*use for battery capacity calibrate*/
@@ -2646,9 +2647,15 @@ static int get_prop_batt_status(struct pm8921_chg_chip *chip)
 }
 
 #define MAX_TOLERABLE_BATT_TEMP_DDC	680
+#define MAX_BATT_TEMP_HIGH_COUNTER	15
+
 static int get_prop_batt_temp(struct pm8921_chg_chip *chip)
 {
 	int rc;
+    /*OPPO 2013-06-05 zhanglong add for 90s delay */
+    long seconds;
+    static long pre_sec = 0;
+    /*OPPO 2013-06-05 zhanglong add for 90s delay end */
 	struct pm8xxx_adc_chan_result result;
 
 	rc = pm8xxx_adc_read(chip->batt_temp_channel, &result);
@@ -2677,11 +2684,36 @@ static int get_prop_batt_temp(struct pm8921_chg_chip *chip)
        return chip->chg_test_temp *10;
     }
 	#endif
+	
 	pr_debug("batt_temp phy = %lld meas = 0x%llx\n", result.physical,
 						result.measurement);
-    if (result.physical > MAX_TOLERABLE_BATT_TEMP_DDC)
-		pr_err("BATT_TEMP= %d > 68degC, device will be shutdown\n",
-						(int) result.physical);
+    if (result.physical > MAX_TOLERABLE_BATT_TEMP_DDC) {
+        /*OPPO 2013-06-05 zhanglong modify for 90s delay */
+        //chip->batt_temp_high_counter ++;
+        seconds = get_seconds();
+        if(seconds - pre_sec > 5) {        
+            chip->batt_temp_high_counter ++;
+            pre_sec = seconds;
+        }
+        /*OPPO 2013-06-05 zhanglong modify for 90s delay end*/
+		if(chip->batt_temp_high_counter >= MAX_BATT_TEMP_HIGH_COUNTER){
+			pr_err("BATT_TEMP= %ddegC > 68degC, device will be shutdown,counter=%d\n",
+							(int) result.physical/10,chip->batt_temp_high_counter);
+			chip->batt_temp_high_counter = 0;
+		}else{
+		    //abnormal, show message in log
+		    pr_err("BATT_TEMP= %ddegC > 68degC, ,counter=%d\n",
+							(int) result.physical/10,chip->batt_temp_high_counter);
+		    chip->battery_temp = MAX_TOLERABLE_BATT_TEMP_DDC/10;
+			  /*report 68C when continute to read temp high than MAX_TOLERABLE_BATT_TEMP_DDC 
+			   and shutdown system quikly*/
+			return MAX_TOLERABLE_BATT_TEMP_DDC;
+		}
+    }else {
+        if(chip->batt_temp_high_counter)
+    		chip->batt_temp_high_counter = 0;
+	}
+	
 	chip->battery_temp = (int)result.physical/10;
     return (int)result.physical;
 #endif
@@ -6757,6 +6789,8 @@ static int __devinit pm8921_charger_probe(struct platform_device *pdev)
 	#endif
 	/* Add begin for RF WIFI AT factory test */
 	chip->ftm_test_mode= false;
+
+	chip->batt_temp_high_counter = 0;
 
 	chip->soc_charge_counter = 0;
 	chip->ocv_shutdown_counter = 0;

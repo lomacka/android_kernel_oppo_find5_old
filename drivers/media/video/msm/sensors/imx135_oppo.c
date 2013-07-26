@@ -11,6 +11,8 @@
  *
  */
 #include "msm_sensor.h"
+#include <linux/i2c/ssl3252.h>
+
 #define SENSOR_NAME "imx135"
 #define PLATFORM_DRIVER_NAME "msm_camera_imx135"
 #define imx135_obj imx135_##obj
@@ -2379,6 +2381,7 @@ static int32_t imx135_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	struct msm_camera_sensor_info *data = s_ctrl->sensordata;
 	CDBG("%s\n", __func__);
+    oppo_led_control(MSM_CAMERA_LED_RELEASE);/*OPPO*/
 	if (data->sensor_platform_info->i2c_conf &&
 		data->sensor_platform_info->i2c_conf->use_i2c_mux)
 		msm_sensor_disable_i2c_mux(
