@@ -80,7 +80,7 @@ MODULE_PARM_DESC(cfilt_adjust_ms, "delay after adjusting cfilt voltage in ms");
 #ifndef CONFIG_VENDOR_EDIT
 #define SLIM_CLOSE_TIMEOUT 1000
 #else
-#define SLIM_CLOSE_TIMEOUT 50
+#define SLIM_CLOSE_TIMEOUT 1000  /*QUALCOMM 2013-06-21 ,revert qualcomm default value ,fix the timeout */
 #endif
 /*OPPO 2012-12-01 zhzhyon Modify end*/
 

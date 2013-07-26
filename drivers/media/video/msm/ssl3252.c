@@ -10,6 +10,7 @@
 #include <mach/camera.h>
 #include <linux/i2c/ssl3252.h>
 #include <linux/leds.h>
+#include <linux/gpio.h>
 
 //#define SSL3252_DEBUG 1
 #define CAMERA_FLASH_SSL3252_DEBUG
@@ -106,7 +107,7 @@ static struct regulator *lvs5;
 #endif
 /* OPPO 2012-08-11 yxq modified end */
 static int current_state = 0;
-
+static int inited = 0;
 /****************************************************************************
  * internal functions
  ***************************************************************************/
@@ -492,72 +493,60 @@ int oppo_led_control(unsigned state)
 {
 	int ret = 0;
 #if 1
+		unsigned gpio_strobe = 1;
 	unsigned char val;
 	if (!ssl3252_client) {
 		pr_err("%s: ssl3252_client == null!\n", __func__);
 		return ret;
 	}
-	
-	switch(state){
+
+	switch(state) {
 	case MSM_CAMERA_LED_INIT:
+		if(inited) break;
+		inited = 1;
 		CDBG_FLASH("%s: INIT flash led\n", __func__);
-/* OPPO 2012-08-11 yxq deleted begin for ssl3252 */
-#if 0
-		ret = gpio_request(125, "flash_en");
-		if(ret < 0)
-			return -ENODEV;
-		gpio_direction_output(125, 1);
-#endif
-/* OPPO 2012-08-11 yxq deleted end */
+		ssl3252_i2c_write( REG_OUTPUT_MODE, 0xA4);
+		/*init flash time out*/
+		ret = ssl3252_i2c_write( REG_VREF_TIMER, (SSL3252_FLASH_TIME-100)/50);
+		/*init current*/
+		ret |= ssl3252_i2c_write( REG_CUR,	
+			(((SSL3252_FLASH_CURRENT-200)/20) << 4)|
+			((SSL3252_TORCH_CURRENT-20)/20)|LED_DETECTION_BIT);
+		gpio_request_one(gpio_strobe, GPIOF_OUT_INIT_LOW, "strobe");
 		break;
-
 	case MSM_CAMERA_LED_LOW:
-		CDBG_FLASH("%s: LOW flash led\n", __func__);
-		if((SSL3252_TORCH_CURRENT < SSL3252_MIN_TORCH_CUR) || (SSL3252_TORCH_CURRENT > SSL3252_MAX_TORCH_CUR)) {
-			pr_err("%s : illegal current %d, current range:20-160mA \n", __func__, SSL3252_TORCH_CURRENT);
-			return -EINVAL;
-		}
-		/*read fault register first, it can clear the fault flags and re-enable the IC when the IC is wrong sometimes*/
+		__gpio_set_value(gpio_strobe, 0);
 		ret = ssl3252_i2c_read(REG_FAULT_INFO, &val);
-		CDBG_FLASH("%s: the fault info value is 0x%X\n", __func__, val);
-		ssl3252_torch_control(ssl3252_client, SSL3252_TORCH_CURRENT);
+		CDBG("%s: the fault info value is 0x%X\n", __func__, val);	
+		ret |= ssl3252_i2c_write(REG_OUTPUT_MODE, 0xAE); 
+		CDBG_FLASH("LOW flash led\n");
 		break;
-	
 	case MSM_CAMERA_LED_HIGH:
-		CDBG_FLASH("%s: HIGH flash led\n", __func__);
-		if((SSL3252_FLASH_CURRENT < SSL3252_MIN_FLASH_CUR) || (SSL3252_FLASH_CURRENT > SSL3252_MAX_FLASH_CUR)) {
-			pr_err("%s : illegal current %d, current range:200-400mA \n", __func__, SSL3252_FLASH_CURRENT);
-			return -EINVAL;
-		}
-		/*read fault register first, it can clear the fault flags and re-enable the IC when the IC is wrong sometimes*/
-		ret = ssl3252_i2c_read(REG_FAULT_INFO, &val);
-		CDBG_FLASH("%s: the fault info value is 0x%X\n", __func__, val);
-		ssl3252_flash_sw_triger(ssl3252_client, SSL3252_FLASH_CURRENT);
+		ssl3252_i2c_write( REG_OUTPUT_MODE, 0xAF);
+		__gpio_set_value(gpio_strobe, 1);
+		CDBG_FLASH("HIGH flash led\n");
 		break;
-
-	case MSM_CAMERA_LED_OFF:
-		CDBG_FLASH("%s: OFF flash led\n", __func__);
-		ret = ssl3252_i2c_write( REG_OUTPUT_MODE, 0xA0);
+	case MSM_CAMERA_LED_OFF:	
+		__gpio_set_value(gpio_strobe, 0);
+		ret = ssl3252_i2c_write( REG_OUTPUT_MODE, 0xA6);
+		CDBG_FLASH("OFF flash led\n");
 		break;
-
-	case MSM_CAMERA_LED_RELEASE:
+	case MSM_CAMERA_LED_RELEASE:	
+		if(inited == 0) break;
+		inited = 0;
+		__gpio_set_value(gpio_strobe, 0);
 		CDBG_FLASH("%s: RELEASE flash led\n", __func__);
 		ret = ssl3252_i2c_write( REG_OUTPUT_MODE, 0xA0);
-/* OPPO 2012-08-11 yxq deleted begin for ssl3252 */
-#if 0
-		ret = gpio_direction_output(125, 0);
-		gpio_free(125);
-#endif
-/* OPPO 2012-08-11 yxq deleted end */
+		gpio_free(gpio_strobe);
 		break;
-
 	default:
 		break;
 	}
 #endif
-	CDBG_FLASH("%s:state is %d, ret is %d\n", __func__, state, ret);
+	CDBG("%s:state is %d, ret is %d\n", __func__, state, ret);
 	return ret;
 }
+
 
 /*-----------------------------------------------------------------*/
 #if 0
