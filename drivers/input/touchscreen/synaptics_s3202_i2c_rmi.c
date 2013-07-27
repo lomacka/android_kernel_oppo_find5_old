@@ -130,7 +130,7 @@
 #define TS_INFO    3
 #define TS_DEBUG   4
 #define TS_TRACE   5
-static int syna_log_level = TS_DEBUG;
+static int syna_log_level = TS_WARNING;
 #define print_ts(level, ...) \
 	do { \
 		if (syna_log_level >= (level)) \
@@ -2045,7 +2045,6 @@ firmware_update:
 
 	print_ts(TS_INFO, KERN_INFO "synaptics_ts_probe: Start touchscreen %s in %s mode\n", ts->input_dev->name, ts->use_irq ? "interrupt" : "polling");
 
-	//syna_log_level = TS_WARNING;
 	return 0;
 
 err_input_register_device_failed:
