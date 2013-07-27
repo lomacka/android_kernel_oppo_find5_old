@@ -3535,10 +3535,9 @@ static void register_lcd_1080p_i2c_devices(void) {
 	}
 }
 //OPPO 2012-10-23 huyu add for lcd compatible
-//yanghai add
 
 #define APQ_SLED_SDB_GPIO 82  //NFC_UPDATE
- static struct i2c_board_info sled_board_info[] __initdata = {
+static struct i2c_board_info sled_board_info[] __initdata = {
 	 {
 		I2C_BOARD_INFO("SN3193", 0x68),
 	 },
@@ -3549,7 +3548,7 @@ static void register_lcd_1080p_i2c_devices(void) {
 static void SN3193_power_init(void)
 {
 	int ret = 0  ;	
- //firmware gpio
+ 	//firmware gpio
 	 ret = gpio_tlmm_config(SN3193_SDB, GPIO_CFG_ENABLE);
 	 if (ret) {
 		 printk(KERN_ERR "%s:gpio_tlmm_config(%#x)=%d\n",
@@ -3558,7 +3557,6 @@ static void SN3193_power_init(void)
 	 gpio_set_value(APQ_SLED_SDB_GPIO, 1);
 }
 #endif
-//yanghai add end
 
 static struct i2c_registry apq8064_i2c_devices[] __initdata = {
 	{
