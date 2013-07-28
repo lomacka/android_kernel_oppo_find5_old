@@ -28,6 +28,7 @@
 ** ------------------------------------------------------------------------------
 ** LiuJun@OnlineRD.Driver.TouchScreen  2012/11/14   1.0	    create file
 ** max.weninger@gmail.com			   2013/06/22   1.0     added S2W
+** max.weninger@gmail.com			   2013/07/26   1.0     added DT2W
 ** ------------------------------------------------------------------------------
 ** 
 ************************************************************************************/
@@ -205,6 +206,10 @@ struct synaptics_ts_data {
 	unsigned int s2w_register_threshold;
 	unsigned int s2w_min_distance;
 	bool s2w_allow_stroke;
+	bool dt2w_enabled;
+	unsigned int dt2w_duration;
+	unsigned int dt2w_threshold;
+	unsigned int dt2w_barrier_y;
 #endif
 };
 
@@ -232,6 +237,7 @@ static bool s2w_exec_power_press = true;
 static unsigned int s2w_down_x = -1;
 // absolute y position of the buttons - will be based on max_y in probe
 static unsigned int s2w_buttons_x = 3700;
+static u64 dt2w_double_tap_start;
 
 static struct input_dev * s2w_pwrdev = NULL;
 static DEFINE_MUTEX(pwrkeyworklock);
@@ -288,7 +294,7 @@ static bool synaptics_s2w_handle_move(struct synaptics_ts_data* ts, int finger_d
 
 static bool input_wakeup_active(struct synaptics_ts_data* ts)
 {
-	return ts->s2w_enabled;
+	return ts->s2w_enabled || ts->dt2w_enabled;
 }
 
 #else
@@ -750,6 +756,120 @@ static ssize_t synaptics_s2w_enabled_dump(struct device *dev,
 
 static DEVICE_ATTR(s2w_enabled, (S_IRUGO|S_IWUGO),
 	synaptics_s2w_enabled_show, synaptics_s2w_enabled_dump);
+
+static ssize_t synaptics_dt2w_enabled_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", syna_ts_data->dt2w_enabled);
+
+	return count;
+}
+
+static ssize_t synaptics_dt2w_enabled_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned long value;
+    int ret = 0;
+
+	ret = strict_strtoul(buf, 10, &value);
+    if (ret < 0) {
+        return count;
+    }
+    if (value == 0 || value == 1) {
+        syna_ts_data->dt2w_enabled = (bool)value;
+    	print_ts(TS_INFO, KERN_INFO "dt2w_enabled=%d\n", syna_ts_data->dt2w_enabled);
+    }
+	return count;
+}
+
+static DEVICE_ATTR(dt2w_enabled, (S_IRUGO|S_IWUGO),
+	synaptics_dt2w_enabled_show, synaptics_dt2w_enabled_dump);
+
+static ssize_t synaptics_dt2w_duration_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", syna_ts_data->dt2w_duration);
+
+	return count;
+}
+
+static ssize_t synaptics_dt2w_duration_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned long value;
+    int ret = 0;
+
+	ret = strict_strtoul(buf, 10, &value);
+    if (ret < 0) {
+        return count;
+    }
+	syna_ts_data->dt2w_duration = (unsigned int)value;
+	print_ts(TS_INFO, KERN_INFO "dt2w_duration=%d\n", syna_ts_data->dt2w_duration);
+	return count;
+}
+
+static DEVICE_ATTR(dt2w_duration, (S_IRUGO|S_IWUGO),
+	synaptics_dt2w_duration_show, synaptics_dt2w_duration_dump);
+
+static ssize_t synaptics_dt2w_threshold_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", syna_ts_data->dt2w_threshold);
+
+	return count;
+}
+
+static ssize_t synaptics_dt2w_threshold_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned long value;
+    int ret = 0;
+
+	ret = strict_strtoul(buf, 10, &value);
+    if (ret < 0) {
+        return count;
+    }
+	syna_ts_data->dt2w_threshold = (unsigned int)value;
+	print_ts(TS_INFO, KERN_INFO "dt2w_threshold=%d\n", syna_ts_data->dt2w_threshold);
+	return count;
+}
+
+static DEVICE_ATTR(dt2w_threshold, (S_IRUGO|S_IWUGO),
+	synaptics_dt2w_threshold_show, synaptics_dt2w_threshold_dump);
+
+static ssize_t synaptics_dt2w_barrier_y_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", syna_ts_data->dt2w_barrier_y);
+
+	return count;
+}
+
+static ssize_t synaptics_dt2w_barrier_y_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned long value;
+    int ret = 0;
+
+	ret = strict_strtoul(buf, 10, &value);
+    if (ret < 0) {
+        return count;
+    }
+	syna_ts_data->dt2w_barrier_y = (unsigned int)value;
+	print_ts(TS_INFO, KERN_INFO "dt2w_barrier_y=%d\n", syna_ts_data->dt2w_barrier_y);
+	return count;
+}
+
+static DEVICE_ATTR(dt2w_barrier_y, (S_IRUGO|S_IWUGO),
+	synaptics_dt2w_barrier_y_show, synaptics_dt2w_barrier_y_dump);
 #endif
 
 static DEVICE_ATTR(log_level, S_IRUGO|S_IWUSR, synaptics_attr_loglevel_show, synaptics_attr_loglevel_store);
@@ -802,8 +922,11 @@ static int synaptics_ts_sysfs_init(struct input_dev *dev)
 		if (sysfs_create_file(android_touch_kobj, &dev_attr_s2w_enabled.attr) ||
         	sysfs_create_file(android_touch_kobj, &dev_attr_s2w_allow_stroke.attr) ||
         	sysfs_create_file(android_touch_kobj, &dev_attr_s2w_register_threshold.attr) ||
-        	sysfs_create_file(android_touch_kobj, &dev_attr_s2w_min_distance.attr)
-	    	) {
+        	sysfs_create_file(android_touch_kobj, &dev_attr_s2w_min_distance.attr) ||
+        	sysfs_create_file(android_touch_kobj, &dev_attr_dt2w_enabled.attr) ||
+        	sysfs_create_file(android_touch_kobj, &dev_attr_dt2w_duration.attr) ||
+        	sysfs_create_file(android_touch_kobj, &dev_attr_dt2w_threshold.attr) ||
+        	sysfs_create_file(android_touch_kobj, &dev_attr_dt2w_barrier_y.attr)) {
 			print_ts(TS_ERROR, KERN_ERR "[syna]%s: create android_touch files failed\n", __func__);
 			ret = -ENOMEM;
 		}
@@ -821,6 +944,10 @@ static void synaptics_ts_sysfs_deinit(struct input_dev *dev)
 	sysfs_remove_file(android_touch_kobj, &dev_attr_s2w_allow_stroke.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_s2w_register_threshold.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_s2w_min_distance.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_dt2w_enabled.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_dt2w_duration.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_dt2w_threshold.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_dt2w_barrier_y.attr);
 	kobject_del(android_touch_kobj);
 #endif
 
@@ -1341,8 +1468,8 @@ static void synaptics_ts_work_func(struct work_struct *work)
 	struct synaptics_ts_data *ts = container_of(work, struct synaptics_ts_data, work);
 	int data_offset = (MAX_FINGERS + 3)/4;
 	int index;
-	uint32_t f0_x, f0_y, f0_z;
-	uint8_t f0_wx, f0_wy;
+	static uint32_t f0_x = 0, f0_y = 0, f0_z = 0;
+	static uint8_t f0_wx, f0_wy;
 	int finger_pressed = 0;
 	uint8_t * buf = ts->finger_data;
 	uint8_t buf_status[2];
@@ -1448,7 +1575,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 								{
 									if(s2w_down_x == -1)
 									{
-										print_ts(TS_TRACE, KERN_ERR "down at %d\n", finger_x);
+										print_ts(TS_TRACE, KERN_ERR "down at %d %d\n", finger_x, finger_y);
 										s2w_down_x = finger_x;
 									} 
 									else 
@@ -1535,9 +1662,29 @@ static void synaptics_ts_work_func(struct work_struct *work)
 				input_mt_sync(ts->input_dev);
 				if (input_wakeup_active(ts)){
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_S2W
+					print_ts(TS_TRACE, KERN_ERR "up at %d %d\n", f0_x, f0_y);
+										
 					s2w_exec_power_press = true;
 					s2w_barrier_reached = false;
 					s2w_down_x = -1;
+
+					if (ts->is_tp_suspended && ts->dt2w_enabled && f0_y > ts->dt2w_barrier_y){
+						u64 now = ktime_to_ms(ktime_get());
+						u64 diff = now - dt2w_double_tap_start;
+						u64 tapTime = ts->dt2w_duration;
+						u64 tooLongTime = tapTime + ts->dt2w_threshold;
+
+						print_ts(TS_TRACE, KERN_ERR "dt2w x=%d y=%d\n", f0_x, f0_y);
+						print_ts(TS_TRACE, KERN_ERR "dt2w diff=%lld\n", diff);
+
+						dt2w_double_tap_start = now;
+					
+						if (diff > tapTime && diff < tooLongTime){
+							simulate_power_press();
+							goto work_func_end;
+						}
+					}
+
 #endif
 				}
 				
@@ -1991,7 +2138,15 @@ firmware_update:
 	
 	// button area begins at this y position
 	s2w_buttons_x = max_y - 150;
-	print_ts(TS_INFO, KERN_INFO "%s: s2w_enabled=%d  s2w_register_threshold=%d ts->s2w_min_distance=%d s2w_allow_stroke=%d s2w_buttons_x=%d\n", __func__, ts->s2w_enabled, ts->s2w_register_threshold, ts->s2w_min_distance, ts->s2w_allow_stroke, s2w_buttons_x);	
+	print_ts(TS_INFO, KERN_INFO "%s: s2w_enabled=%d  s2w_register_threshold=%d s2w_min_distance=%d s2w_allow_stroke=%d s2w_buttons_x=%d\n", __func__, ts->s2w_enabled, ts->s2w_register_threshold, ts->s2w_min_distance, ts->s2w_allow_stroke, s2w_buttons_x);	
+	
+	ts->dt2w_barrier_y = s2w_buttons_x;
+	ts->dt2w_enabled = true;
+	ts->dt2w_duration = 150;
+	ts->dt2w_threshold = 200;
+
+	print_ts(TS_INFO, KERN_INFO "%s: dt2w_enabled=%d  dt2w_duration=%d dt2w_threshold=%d dt2w_barrier_y=%d\n", __func__, ts->dt2w_enabled, ts->dt2w_duration, ts->dt2w_threshold, ts->dt2w_barrier_y);	
+	
 #endif
 
 	// set device type as touchscreen
