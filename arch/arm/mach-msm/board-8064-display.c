@@ -266,22 +266,11 @@ static struct msm_panel_common_pdata mdp_pdata = {
 	.mem_hid = MEMTYPE_EBI1,
 #endif
 	.mdp_iommu_split_domain = 1,
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
-#ifdef CONFIG_VENDOR_EDIT	
+#ifdef CONFIG_VENDOR_EDIT
+	/* for early backlight on for APQ8064 */
 	.cont_splash_enabled = 0x01,
-	.splash_screen_addr = 0x00,
-	.splash_screen_size = 0x00,
 #endif
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
 };
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
-#ifdef CONFIG_VENDOR_EDIT	
-static char mipi_dsi_splash_is_enabled(void)
-{   
-	return mdp_pdata.cont_splash_enabled;
-}
-#endif
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
 
 void __init apq8064_mdp_writeback(struct memtype_reserve* reserve_table)
 {
@@ -387,7 +376,7 @@ static int mipi_dsi_panel_power(int on)
 #else 
 	//OPPO 2012-10-23 huyu add for lcd compatible
 	static struct regulator *reg_lvs7, *reg_l2, *reg_l11, *reg_l22, *reg_ext_3p3v;
-	static int gpio36, gpio25, gpio26, mpp3;
+	static int gpio36, gpio25, mpp3;
 #endif
 	int rc;
 
@@ -485,12 +474,15 @@ static int mipi_dsi_panel_power(int on)
 			return -ENODEV;
 		}
 
+#ifndef CONFIG_VENDOR_EDIT
+// not needed on oppo
 		gpio26 = PM8921_GPIO_PM_TO_SYS(26);
 		rc = gpio_request(gpio26, "pwm_backlight_ctrl");
 		if (rc) {
 			pr_err("request gpio 26 failed, rc=%d\n", rc);
 			return -ENODEV;
 		}
+#endif
 
 		gpio36 = PM8921_GPIO_PM_TO_SYS(36); /* lcd1_pwr_en_n */
 		rc = gpio_request(gpio36, "lcd1_pwr_en_n");
@@ -639,14 +631,17 @@ static int mipi_dsi_panel_power(int on)
 	return 0;
 }
 
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
-#ifdef CONFIG_VENDOR_EDIT	
-static char mipi_dsi_splash_is_enabled(void);
+#ifdef CONFIG_VENDOR_EDIT
+/* for early backlight on for APQ8064 */
+static char mipi_dsi_splash_is_enabled(void)
+{
+	return mdp_pdata.cont_splash_enabled;
+}
 #endif
+
 static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.dsi_power_save = mipi_dsi_panel_power,
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
-#ifdef CONFIG_VENDOR_EDIT			
+#ifdef CONFIG_VENDOR_EDIT
 	.splash_is_enabled = mipi_dsi_splash_is_enabled,
 #endif
 };

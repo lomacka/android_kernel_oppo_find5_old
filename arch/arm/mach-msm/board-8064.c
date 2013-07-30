@@ -2690,6 +2690,8 @@ static struct platform_device apq8064_device_ext_3p3v_vreg __devinitdata = {
 	},
 };
 
+#ifndef CONFIG_VENDOR_EDIT
+// amtel ts only
 static struct platform_device apq8064_device_ext_ts_sw_vreg __devinitdata = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= PM8921_GPIO_PM_TO_SYS(23),
@@ -2698,6 +2700,7 @@ static struct platform_device apq8064_device_ext_ts_sw_vreg __devinitdata = {
 			= &apq8064_gpio_regulator_pdata[GPIO_VREG_ID_EXT_TS_SW],
 	},
 };
+#endif
 
 static struct platform_device apq8064_device_rpm_regulator __devinitdata = {
 	.name	= "rpm-regulator",
@@ -2749,7 +2752,10 @@ static struct platform_device *common_devices[] __initdata = {
 	&apq8064_device_ext_3p3v_vreg,
 	&apq8064_device_ssbi_pmic1,
 	&apq8064_device_ssbi_pmic2,
+#ifndef CONFIG_VENDOR_EDIT
+// amtel ts only
 	&apq8064_device_ext_ts_sw_vreg,
+#endif
 	&msm_device_smd_apq8064,
 	&apq8064_device_otg,
 	&apq8064_device_gadget_peripheral,

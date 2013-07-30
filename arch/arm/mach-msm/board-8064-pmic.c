@@ -114,13 +114,15 @@ struct pm8xxx_mpp_init {
 /* Initial PM8921 GPIO configurations */
 static struct pm8xxx_gpio_init pm8921_gpios[] __initdata = {
 	PM8921_GPIO_OUTPUT(14, 1, HIGH),	/* HDMI Mux Selector */
-	PM8921_GPIO_OUTPUT(23, 0, HIGH),	/* touchscreen power FET */
-/* OPPO 2012-11-30 huyu modify for boot LOGO bluescreen*/
-#ifndef CONFIG_VENDOR_EDIT	
+#ifndef CONFIG_VENDOR_EDIT
+// amtel ts only
+	PM8921_GPIO_OUTPUT(23, 0, HIGH), /* touchscreen power FET */
+#endif
+
 	PM8921_GPIO_OUTPUT_BUFCONF(25, 0, LOW, CMOS), /* DISP_RESET_N */
+#ifndef CONFIG_VENDOR_EDIT
+// not needed on oppo
 	PM8921_GPIO_OUTPUT_FUNC(26, 0, PM_GPIO_FUNC_2), /* Bl: Off, PWM mode */
-#else
-	PM8921_GPIO_OUTPUT_BUFCONF(25, 1, LOW, CMOS), /* DISP_RESET_N */
 #endif
 	PM8921_GPIO_OUTPUT_VIN(30, 1, PM_GPIO_VIN_VPH), /* SMB349 susp line */
 	PM8921_GPIO_OUTPUT_BUFCONF(36, 1, LOW, OPEN_DRAIN),
